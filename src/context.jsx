@@ -27,9 +27,24 @@ function clinicReducer(state, action) {
   }
 }
 
+const initialUserState = { user: null };
+
+function userReducer(state, action) {
+  switch(action.type) {
+    case "SET_USER":
+      return { ...state, user: action.payload };
+    case "LOGOUT":
+      return { ...state, user: null };
+    default:
+      return state;
+  }
+}
+
 export function ClinicProvider({ children }) {
   const [persist,setPersist] = useLocalStorage("clinic-store", initialState);
   const [state,dispatch] = useReducer(clinicReducer, persist);
+
+  const [userState, userDispatch] = useReducer(userReducer, initialUserState);
 
   useEffect(()=>setPersist(state), [state, setPersist]);
 
@@ -39,8 +54,11 @@ export function ClinicProvider({ children }) {
     setStatus: (id,status) => dispatch({ type:"SET_STATUS", payload:{id,status} }),
     removePatient: (id) => dispatch({ type:"REMOVE_PATIENT", payload:{id} }),
     removeAllPatients: () => dispatch({ type:"REMOVE_ALL_PATIENTS" }),
-    setSelectedPatientId: (id) => dispatch({ type:"SET_SELECTED_PATIENT_ID", payload:{id} })
-  }),[]);
+    setSelectedPatientId: (id) => dispatch({ type:"SET_SELECTED_PATIENT_ID", payload:{id} }),
+    setUser: (user) => userDispatch({ type: "SET_USER", payload: user }),
+    logout: () => userDispatch({ type: "LOGOUT" }),
+    user: userState.user
+  }), [userState.user]);
 
   return <ClinicContext.Provider value={{state,...api}}>{children}</ClinicContext.Provider>;
 }
