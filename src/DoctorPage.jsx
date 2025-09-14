@@ -456,7 +456,7 @@ export default function DoctorPage() {
                 value={diagnosis}
                 onChange={e => setDiagnosis(e.target.value)}
                 className="input"
-                rows="3"
+                rows="2"
               />
             </label>
             <label>
@@ -465,7 +465,7 @@ export default function DoctorPage() {
                 value={prescription}
                 onChange={e => setPrescription(e.target.value)}
                 className="input"
-                rows="3"
+                rows="5"
               />
             </label>
             <div style={{ display: 'flex', gap: '8px' }}>

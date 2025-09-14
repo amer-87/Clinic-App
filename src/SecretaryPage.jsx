@@ -1,13 +1,11 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { useClinic } from "./hooks";
 import PatientTable from "./PatientTable";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { ClinicContext } from "./context";
 
 export default function SecretaryPage() {
   const { state, removePatient, addPatient, updatePatient, removeAllPatients } = useClinic();
-  const { logout } = useContext(ClinicContext);
   const [showForm, setShowForm] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
   const [form, setForm] = useState({
@@ -133,9 +131,6 @@ export default function SecretaryPage() {
 
   return (
     <div className="page">
-      <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-        <button onClick={logout} className="btn-danger">تسجيل الخروج</button>
-      </div>
       <h2>📋 صفحة السكرتير</h2>
       <div style={{ textAlign: 'center', marginBottom: '10px', fontWeight: 'bold' }}>
         التاريخ والوقت: {new Date().toLocaleString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
