@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useClinic } from "./hooks";
 import { todayISO } from "./helpers"; // إذا استخدمت helpers.js، أو ضع الدالة هنا مباشرة
 import PatientTable from "./PatientTable";
 import StatsBar from "./StatsBar";
+import { ClinicContext } from "./context";
 
 export default function ReceptionPage() {
   const { state, addPatient, updatePatient, removePatient } = useClinic();
+  const { logout } = useContext(ClinicContext);
   const [form,setForm] = useState({
     firstName: "",
     lastName: "",
@@ -102,11 +104,18 @@ export default function ReceptionPage() {
   }
 
   return (
-    <div style={{display:'flex',gap:'16px',flexWrap:'wrap'}}>
+    <div>
+      <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+        <button onClick={logout} className="btn-danger">تسجيل الخروج</button>
+      </div>
+      <div style={{display:'flex',gap:'16px',flexWrap:'wrap'}}>
       <div className="card" style={{flex:'1 1 700px'}}>
         <h1 className="section-title" style={{textAlign: 'center'}}>
           PATIENT RECORD
         </h1>
+        <div style={{ textAlign: 'center', marginBottom: '10px', fontWeight: 'bold' }}>
+          التاريخ والوقت: {new Date().toLocaleString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        </div>
         <form onSubmit={handleSubmit} style={{display:'flex', flexDirection:'column', gap:'20px'}}>
           {/* Patient Information Section */}
           <section className="section-secondary">
@@ -334,6 +343,7 @@ export default function ReceptionPage() {
         <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="بحث بالاسم/الهاتف/الشكوى" className="input"/>
         <StatsBar patients={patientsToday}/>
         <PatientTable patients={filtered} onEdit={handleEdit} onDelete={handleDelete} />
+      </div>
       </div>
     </div>
   );

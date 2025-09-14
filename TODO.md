@@ -1,11 +1,12 @@
-# Task: Replace "الاسم" with "الاسم الثلاثي" in Secretary and Doctor pages and remove lastName
+# TODO for Adding Print Button to Doctor Page
 
-## Steps:
-- [x] Update SecretaryPage.jsx
-  - Replace firstName field with "الاسم الثلاثي"
-  - Remove lastName usage
-- [x] Update DoctorPage.jsx
-  - Remove lastName display in UI and PDF
-  - Replace firstName label with "الاسم الثلاثي"
-  - Update any other lastName usage
-- [ ] Test changes in both pages to ensure correct display and functionality
+- [x] Add handlePrintPrescription function to create printable content with patient details (name, age, gender, phone, diagnosis, prescription)
+- [x] Add print button next to "حفظ وإنهاء" button in the form
+- [ ] Test the print functionality
+
+# TODO for Removing Diagnosis and Prescription from Add Patient Form
+
+- [ ] Remove diagnosis and prescription fields from the add/edit patient form
+- [ ] Update form state to exclude diagnosis and prescription
+- [ ] Update handleFormSubmit to not include diagnosis and prescription for new patients
+- [ ] Update handleEdit to not set diagnosis and prescription

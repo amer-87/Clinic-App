@@ -16,6 +16,7 @@ body {
   margin: 0;
   padding: 0;
   color: var(--text-color);
+  direction: rtl;
 }
 
 header {
@@ -24,20 +25,22 @@ header {
   background-color: #fff;
   border-bottom: 1px solid #e5e7eb;
   padding: 12px 16px;
+}
+
+.container {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-nav a {
+header a {
   padding: 6px 12px;
   border-radius: 999px;
   text-decoration: none;
   color: #000;
-  margin-left: 4px;
 }
 
-nav a.active {
+header a.active {
   background-color: #0f172a;
   color: #fff;
 }
@@ -46,13 +49,6 @@ main {
   max-width: 1200px;
   margin: 24px auto;
   padding: 0 16px;
-}
-
-footer {
-  max-width: 1200px;
-  margin: 24px auto;
-  font-size: 12px;
-  color: #64748b;
 }
 
 /* Card */
@@ -139,6 +135,20 @@ footer {
   background-color: #fff;
 }
 
+/* DoctorPage layout for large screens */
+.doctor-layout {
+  display: flex;
+  gap: 16px;
+  flex-wrap: nowrap;
+  flex-direction: row-reverse; /* form/card on right side in RTL */
+}
+
+@media (max-width: 1024px) {
+  .doctor-layout {
+    flex-direction: column;
+  }
+}
+
 .table th {
   background-color: var(--primary-color);
   color: var(--text-light);
@@ -222,4 +232,11 @@ footer {
 
 .section-title-secondary {
   color: var(--primary-color);
+}
+
+footer {
+  max-width: 1200px;
+  margin: 24px auto;
+  font-size: 12px;
+  color: #64748b;
 }

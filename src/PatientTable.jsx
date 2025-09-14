@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function PatientTable({ patients, onEdit, onDelete, onEntry, onSelect }) {
+export default function PatientTable({ patients, onEdit, onDelete, onEntry, onSelect, onRowClick }) {
   return (
     <table className="table">
       <thead>
@@ -16,15 +16,15 @@ export default function PatientTable({ patients, onEdit, onDelete, onEntry, onSe
       </thead>
       <tbody>
         {patients.map((p, index) => (
-          <tr key={p.id} className={p.status === "done" ? "done" : "waiting"}>
+          <tr key={p.id} onClick={() => onRowClick && onRowClick(p)} style={{ cursor: onRowClick ? 'pointer' : 'default' }}>
             <td>{index + 1}</td>
             <td>{p.firstName} {p.lastName}</td>
             <td>{p.age}</td>
             <td>{p.gender}</td>
             <td>{p.phone}</td>
-            <td>{p.status}</td>
+            <td className={p.status === "done" ? "done" : "waiting"}>{p.status}</td>
             <td>
-              {onSelect && <button className="btn-primary" onClick={() => onSelect(p)}>اختيار</button>}
+              {onSelect && p.status !== "done" && <button className="btn-primary" onClick={() => onSelect(p)}>اختيار</button>}
               {onEdit && <button className="btn-secondary" onClick={() => onEdit(p)}>تعديل</button>}
               {onDelete && <button className="btn-danger" onClick={() => onDelete(p)}>مسح</button>}
               {onEntry && <button className="btn" onClick={() => onEntry(p)}>ادخال</button>}
