@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, NavLink, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, NavLink, Navigate } from "react-router-dom";
 import ReceptionPage from "./ReceptionPage";
 import SecretaryPage from "./SecretaryPage";
 import DoctorPage from "./DoctorPage";
@@ -82,8 +82,6 @@ function PrivateRoute({ children, allowedRoles }) {
 // App Content Component
 // ——————————————
 function AppContent() {
-  const { user } = useContext(ClinicContext);
-
   return (
     <Layout>
       <Routes>
@@ -104,9 +102,9 @@ function AppContent() {
 export default function App() {
   return (
     <ClinicProvider>
-      <BrowserRouter>
+      <HashRouter>
         <AppContent />
-      </BrowserRouter>
+      </HashRouter>
     </ClinicProvider>
   );
 }

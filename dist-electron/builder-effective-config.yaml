@@ -1,0 +1,23 @@
+directories:
+  output: dist-electron
+  buildResources: build
+appId: com.clinic.app
+productName: Clinic App
+files:
+  - filter:
+      - dist/**/*
+      - electron.cjs
+asar: false
+win:
+  target: nsis
+  forceCodeSigning: false
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  allowElevation: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Clinic App
+  runAfterFinish: true
+  menuCategory: Clinic Applications
+electronVersion: 26.2.0
