@@ -41,7 +41,18 @@ function userReducer(state, action) {
   }
 }
 
-const initialUsersState = { users: [] };
+const initialUsersState = { 
+  users: [
+    {
+      name: "المالك",
+      email: "aamerblack@gmail.com",
+      role: "owner",
+      status: "approved",
+      password: "owner123", // يمكن تغييرها لاحقاً
+      createdAt: new Date().toISOString()
+    }
+  ] 
+};
 
 function usersReducer(state, action) {
   switch(action.type) {
@@ -119,16 +130,54 @@ export function ClinicProvider({ children }) {
     console.log("Users state updated:", usersState.users);
   }, [usersState.users]);
 
+  // Initialize owner account if not exists
+  useEffect(() => {
+    const hasOwner = usersState.users.some(user => user.role === 'owner');
+    if (!hasOwner) {
+      const ownerAccount = {
+        name: "المالك",
+        email: "aamerblack@gmail.com",
+        role: "owner",
+        status: "approved",
+        password: "owner123",
+        createdAt: new Date().toISOString()
+      };
+      usersDispatch({ type: "ADD_USER", payload: ownerAccount });
+      console.log("Owner account created");
+    }
+  }, [usersState.users]);
+
   const api = useMemo(() => ({
+    // Patient management
     addPatient: (patient) => dispatch({ type:"ADD_PATIENT", payload:patient }),
     updatePatient: (id, changes) => dispatch({ type:"UPDATE_PATIENT", payload:{id,changes} }),
     setStatus: (id,status) => dispatch({ type:"SET_STATUS", payload:{id,status} }),
     removePatient: (id) => dispatch({ type:"REMOVE_PATIENT", payload:{id} }),
     removeAllPatients: () => dispatch({ type:"REMOVE_ALL_PATIENTS" }),
     setSelectedPatientId: (id) => dispatch({ type:"SET_SELECTED_PATIENT_ID", payload:{id} }),
+    
+    // User authentication
+    login: (username, password) => {
+      console.log("Login attempt:", username, password);
+      console.log("Available users:", usersState.users);
+      
+      const user = usersState.users.find(
+        u => u.email === username && u.password === password && u.status === 'approved'
+      );
+      
+      console.log("Found user:", user);
+      
+      if (user) {
+        userDispatch({ type: "SET_USER", payload: user });
+        return true;
+      }
+      return false;
+    },
     setUser: (user) => userDispatch({ type: "SET_USER", payload: user }),
     logout: () => userDispatch({ type: "LOGOUT" }),
     user: userState.user,
+    
+    // User management
     users: usersState.users,
     addUser: (user) => usersDispatch({ type: "ADD_USER", payload: user }),
     approveUser: (email, approvedBy, tempPassword) => usersDispatch({ type: "APPROVE_USER", payload: { email, approvedBy, tempPassword } }),
@@ -140,8 +189,6 @@ export function ClinicProvider({ children }) {
 
   return <ClinicContext.Provider value={{state,...api}}>{children}</ClinicContext.Provider>;
 }
-
-
 
 function useLocalStorage(key, initialValue) {
   const [value, setValue] = useState(() => {

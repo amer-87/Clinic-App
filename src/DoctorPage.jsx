@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef } from "react";
 import { useClinic } from "./hooks";
 import { ClinicContext } from "./context";
 import PatientTable from "./PatientTable";
@@ -7,9 +7,8 @@ import html2canvas from "html2canvas";
 
 export default function DoctorPage() {
   const { state, removePatient, addPatient, updatePatient, setStatus } = useClinic();
-  const { logout, addSecretary, user, users } = useContext(ClinicContext);
+  const { addSecretary, user, users } = useContext(ClinicContext);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [diagnosis, setDiagnosis] = useState("");
   const [prescription, setPrescription] = useState("");
 
   // New states for secretary credentials and form toggle
@@ -42,66 +41,63 @@ export default function DoctorPage() {
     }
   });
   const [file, setFile] = useState(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [capturedImages, setCapturedImages] = useState([]);
+  const [stream, setStream] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const patients = state.patients;
 
   async function handleSavePDF() {
-    // Create a hidden div with detailed patient information
-    const detailsDiv = document.createElement('div');
-    detailsDiv.style.position = 'absolute';
-    detailsDiv.style.left = '-9999px';
-    detailsDiv.style.top = '-9999px';
-    detailsDiv.style.width = '800px';
-    detailsDiv.style.fontFamily = 'Arial, sans-serif';
-    detailsDiv.style.fontSize = '12px';
-    detailsDiv.style.padding = '20px';
-    detailsDiv.style.backgroundColor = '#f8fafc';
-    detailsDiv.style.color = '#000';
-    detailsDiv.style.direction = 'rtl';
+    const doc = new jsPDF('p', 'mm', 'a4');
 
-    let htmlContent = '<h1 style="text-align: center; color: #2a5d9f; margin-bottom: 20px;">بيانات المرضى</h1>';
-    htmlContent += '<div style="column-count: 2; column-gap: 20px;">';
-    patients.forEach((patient, index) => {
+    for (let i = 0; i < patients.length; i++) {
+      const patient = patients[i];
+
+      // Create HTML for this patient
+      const detailsDiv = document.createElement('div');
+      detailsDiv.style.position = 'absolute';
+      detailsDiv.style.left = '-9999px';
+      detailsDiv.style.top = '-9999px';
+      detailsDiv.style.width = '210mm'; // A4 width
+      detailsDiv.style.height = '297mm'; // A4 height
+      detailsDiv.style.fontFamily = 'Arial, sans-serif';
+      detailsDiv.style.fontSize = '16px';
+      detailsDiv.style.padding = '40px 10px 10px 5px';
+      detailsDiv.style.backgroundColor = '#f8fafc';
+      detailsDiv.style.color = '#000';
+      detailsDiv.style.direction = 'rtl';
+
+      let htmlContent = `<h1 style="text-align: center; color: #2a5d9f; margin-bottom: 20px;">بيانات المريض ${i + 1}: ${patient.firstName} ${patient.lastName}</h1>`;
       htmlContent += `
-        <div style="background-color: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); break-inside: avoid;">
-          <h3 style="color: #2a5d9f; margin-bottom: 10px;">المريض ${index + 1}: ${patient.firstName} ${patient.lastName}</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-            <p style="margin: 0;"><strong>العمر:</strong> ${patient.age}</p>
-            <p style="margin: 0;"><strong>الجنس:</strong> ${patient.gender}</p>
-            <p style="margin: 0;"><strong>العنوان:</strong> ${patient.address || 'غير محدد'}</p>
-            <p style="margin: 0;"><strong>الهاتف:</strong> ${patient.phone}</p>
+        <div style="background-color: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px; background-color: #e3f2fd; padding: 15px; border-radius: 5px;">
+            <p style="margin: 2px 0; color: #1565c0;"><strong>الاسم:</strong> ${patient.firstName} ${patient.lastName}</p>
+            <p style="margin: 2px 0; color: #1565c0; display: flex; justify-content: space-between;"><span><strong>العمر:</strong> ${patient.age}</span><span><strong>التاريخ:</strong> ${patient.visitDate}</span></p>
+            <p style="margin: 2px 0; color: #1565c0;"><strong>الهاتف:</strong> ${patient.phone}</p>
+            <p style="margin: 2px 0; color: #1565c0;"><strong>الجنس:</strong> ${patient.gender}</p>
           </div>
-          <p style="margin: 5px 0;"><strong>التاريخ الطبي:</strong> ${patient.medicalHistory ? Object.keys(patient.medicalHistory).filter(key => patient.medicalHistory[key]).join(', ') : 'غير محدد'}</p>
-          <p style="margin: 5px 0;"><strong>الأعراض الحالية:</strong> ${patient.currentSymptoms ? Object.keys(patient.currentSymptoms).filter(key => patient.currentSymptoms[key]).join(', ') : 'غير محدد'}</p>
-          <p style="margin: 5px 0;"><strong>التشخيص:</strong> ${patient.diagnosis || 'غير محدد'}</p>
+          <p style="margin: 5px 0;"><strong>العنوان:</strong> ${patient.address || 'غير محدد'}</p>
           <p style="margin: 5px 0;"><strong>الوصفة الطبية:</strong> ${patient.prescription || 'غير محدد'}</p>
-          <p style="margin: 5px 0;"><strong>الحالة:</strong> <span style="color: ${patient.status === 'done' ? '#166534' : '#b45309'}; font-weight: bold;">${patient.status === 'done' ? 'مكتمل' : 'في الانتظار'}</span></p>
         </div>
       `;
-    });
-    htmlContent += '</div>';
 
-    detailsDiv.innerHTML = htmlContent;
-    document.body.appendChild(detailsDiv);
+      detailsDiv.innerHTML = htmlContent;
+      document.body.appendChild(detailsDiv);
 
-    const canvas = await html2canvas(detailsDiv, { scale: 2 });
-    document.body.removeChild(detailsDiv);
+      const canvas = await html2canvas(detailsDiv, { scale: 2, width: 794, height: 1123 }); // A4 at 96 DPI * 2
+      document.body.removeChild(detailsDiv);
 
-    const imgData = canvas.toDataURL('image/png');
-    const doc = new jsPDF('p', 'mm', 'a4');
-    const imgWidth = 210; // A4 width in mm
-    const pageHeight = 295; // A4 height in mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    let heightLeft = imgHeight;
-    let position = 0;
-    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      doc.addPage();
-      doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      const imgData = canvas.toDataURL('image/png');
+
+      if (i > 0) {
+        doc.addPage();
+      }
+
+      doc.addImage(imgData, 'PNG', 0, 0, 210, 297); // A4 size
     }
+
     doc.save("patients_data.pdf");
   }
 
@@ -113,25 +109,35 @@ export default function DoctorPage() {
         <head>
           <title>الوصفة الطبية</title>
           <style>
-            body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; }
-            h1 { text-align: center; color: #2a5d9f; }
-            .details { margin-bottom: 20px; }
-            .details p { margin: 5px 0; }
-            .prescription { border-top: 1px solid #ccc; padding-top: 20px; }
+            @page { size: A4; margin: 0; }
+            body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; margin: 0; background-color: #f8fafc; display: flex; flex-direction: column; justify-content: space-between; }
+            .card { background-color: #fff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 16px; width: 100%; max-width: 800px; margin: 0 auto; }
+            .details { background-color: #e3f2fd; padding: 10px; border-radius: 5px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-bottom: 16px; }
+            .details p { margin: 5px 0; color: #1565c0; }
+            .prescription { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 12px; background-color: #fff; min-height: 700px; white-space: pre-wrap; margin-bottom: 16px; }
+            .prescription p { margin: 0; font-size: 20px; line-height: 1.5; }
           </style>
         </head>
         <body>
-          <h1>الوصفة الطبية</h1>
-          <div class="details">
-            <p><strong>الاسم:</strong> ${selectedPatient.firstName} ${selectedPatient.lastName}</p>
-            <p><strong>العمر:</strong> ${selectedPatient.age}</p>
-            <p><strong>الجنس:</strong> ${selectedPatient.gender}</p>
-            <p><strong>الهاتف:</strong> ${selectedPatient.phone}</p>
-            <p><strong>التشخيص:</strong> ${diagnosis || 'غير محدد'}</p>
+          <div class="card">
+            <div class="doctor-info" style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2a5d9f; padding-bottom: 10px;">
+              <p><strong>الدكتور</strong></p>
+              <p> ${user ? user.name : 'غير محدد'}</p>
+              <p><strong>التخصص:</strong> ${user ? user.specialization || 'غير محدد' : 'غير محدد'}</p>
+            </div>
+            <div class="details">
+              <p><strong>الاسم:</strong> ${selectedPatient.firstName} ${selectedPatient.lastName}</p>
+              <p style="display: flex; justify-content: space-between;"><span><strong>العمر:</strong> ${selectedPatient.age}</span><span><strong>التاريخ:</strong> ${selectedPatient.visitDate}</span></p>
+              <p><strong>الهاتف:</strong> ${selectedPatient.phone}</p>
+              <p><strong>الجنس:</strong> ${selectedPatient.gender}</p>
+            </div>
+            <div class="prescription">
+              <p>${prescription || 'غير محدد'}</p>
+            </div>
           </div>
-          <div class="prescription">
-            <h2>الوصفة الطبية:</h2>
-            <p>${prescription || 'غير محدد'}</p>
+          <div style="display: flex; justify-content: space-between; margin-button: 50px; border-top: 2px solid #2a5d9f; padding-top: 10px;">
+            <p><strong>العنوان:</strong> ${user ? user.title || 'غير محدد' : 'غير محدد'}</p>
+            <p><strong>الهاتف:</strong> ${user ? user.phone || 'غير محدد' : 'غير محدد'}</p>
           </div>
         </body>
       </html>
@@ -143,17 +149,14 @@ export default function DoctorPage() {
 
   function handleSelect(patient) {
     setSelectedPatient(patient);
-    setDiagnosis(patient.diagnosis || "");
     setPrescription(patient.prescription || "");
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
+  function saveAndFinish() {
     if (!selectedPatient) return;
-    updatePatient(selectedPatient.id, { diagnosis, prescription });
+    updatePatient(selectedPatient.id, { prescription });
     setStatus(selectedPatient.id, "done");
     setSelectedPatient(null);
-    setDiagnosis("");
     setPrescription("");
   }
 
@@ -202,6 +205,7 @@ export default function DoctorPage() {
       }
     });
     setFile(patient.file || null);
+    setCapturedImages(patient.cameraImages || []);
     setShowForm(true);
   }
 
@@ -211,7 +215,8 @@ export default function DoctorPage() {
       // Update existing patient
       updatePatient(editingPatient.id, {
         ...form,
-        file: file
+        file: file,
+        cameraImages: capturedImages
       });
     } else {
       // Add new patient
@@ -221,7 +226,8 @@ export default function DoctorPage() {
         createdAt: Date.now(),
         visitDate: new Date().toISOString().slice(0, 10),
         status: "waiting",
-        file: file
+        file: file,
+        cameraImages: capturedImages
       };
       addPatient(newPatient);
     }
@@ -242,21 +248,53 @@ export default function DoctorPage() {
       }
     });
     setFile(null);
+    setCapturedImages([]);
     setEditingPatient(null);
     setShowForm(false);
+  }
+
+  async function openCamera() {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+      setIsCameraOpen(true);
+    } catch (err) {
+      alert('لا يمكن الوصول إلى الكاميرا: ' + err.message);
+    }
+  }
+
+  function capturePhoto() {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      const dataURL = canvas.toDataURL('image/png');
+      setCapturedImages([...capturedImages, dataURL]);
+      // Do not close camera, allow multiple captures
+    }
+  }
+
+  function deleteImage(index) {
+    setCapturedImages(capturedImages.filter((_, i) => i !== index));
+  }
+
+  function closeCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setIsCameraOpen(false);
   }
 
   return (
     <div className="page">
       <h2>🏥 صفحة الطبيب</h2>
-      <div style={{ textAlign: 'center', marginBottom: '10px', fontWeight: 'bold' }}>
-        التاريخ والوقت: {new Date().toLocaleString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-      </div>
-      {user && (
-        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-          <button onClick={logout} className="btn-danger">تسجيل الخروج</button>
-        </div>
-      )}
 
       <div style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
         <button className="btn-primary" onClick={() => { setShowForm(true); setEditingPatient(null); }}>
@@ -312,16 +350,16 @@ export default function DoctorPage() {
                   required
                 />
               </label>
-              <label>
-                العنوان
-                <input
-                  type="text"
-                  value={form.address}
-                  onChange={e => setForm({ ...form, address: e.target.value })}
-                  className="input"
-                />
-              </label>
             </div>
+            <label>
+              العنوان
+              <input
+                type="text"
+                value={form.address}
+                onChange={e => setForm({ ...form, address: e.target.value })}
+                className="input"
+              />
+            </label>
 
             <div style={{ marginTop: '16px' }}>
               <h4>التاريخ الطبي</h4>
@@ -385,7 +423,24 @@ export default function DoctorPage() {
               </label>
             </div>
 
-
+            <div style={{ marginTop: '16px' }}>
+              <label>صور من الكاميرا</label>
+              {isCameraOpen && <video ref={videoRef} autoPlay style={{ width: '100%', maxWidth: '300px', border: '1px solid #ccc' }} />}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                {capturedImages.map((img, index) => (
+                  <div key={index} style={{ position: 'relative' }}>
+                    <img src={img} alt={`الصورة ${index + 1}`} style={{ width: '100px', height: '100px', objectFit: 'cover', border: '1px solid #ccc' }} />
+                    <button type="button" onClick={() => deleteImage(index)} style={{ position: 'absolute', top: '0', right: '0', background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer' }}>×</button>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
+                <button type="button" onClick={openCamera} className="btn-secondary">فتح الكاميرا</button>
+                {isCameraOpen && <button type="button" onClick={capturePhoto} className="btn-primary">التقاط الصورة</button>}
+                {isCameraOpen && <button type="button" onClick={closeCamera} className="btn-outline">إغلاق الكاميرا</button>}
+              </div>
+              <canvas ref={canvasRef} style={{ display: 'none' }} />
+            </div>
 
             <div style={{ marginTop: '16px' }}>
               <label>
@@ -414,20 +469,33 @@ export default function DoctorPage() {
           <h3>قائمة المراجعين </h3>
           <PatientTable patients={patients} onEdit={handleEdit} onDelete={handleDelete} onRowClick={handleSelect} />
 
-          <div style={{ marginTop: '10px', textAlign: 'center' }}>
+          <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
             <button onClick={handleSavePDF} className="btn-primary">حفظ البيانات</button>
+            <button className="btn-primary" onClick={() => setShowSecretaryForm(!showSecretaryForm)}>
+              {showSecretaryForm ? 'إخفاء تسجيل السكرتير' : 'تسجيل سكرتير جديد'}
+            </button>
           </div>
         </div>
 
         <div className="card" style={{flex:'1 1 500px'}}>
-          <h3>تفاصيل المريض{selectedPatient ? `: ${selectedPatient.firstName} ${selectedPatient.lastName}` : ''}</h3>
-          <div style={{marginBottom:'16px'}}>
-            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
-              <p><strong>الاسم:</strong> {selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : ''}</p>
-              <p><strong>العمر:</strong> {selectedPatient ? selectedPatient.age : ' '}</p>
-              <p><strong>الجنس:</strong> {selectedPatient ? selectedPatient.gender : ' '}</p>
-              <p><strong>الهاتف:</strong> {selectedPatient ? selectedPatient.phone : ' '}</p>
+          {/* Doctor Information Section */}
+          {user && (
+            <div className="doctor-info" style={{textAlign: 'center', marginBottom: '20px', borderBottom: '2px solid #2a5d9f', paddingBottom: '10px', backgroundColor: '#e3f2fd'}}>
+              <p><strong>الدكتور</strong></p>
+              <p>{user.name}</p>
+              <p><strong>التخصص:</strong> {user.specialization || 'غير محدد'}</p>
             </div>
+          )}
+
+          <div style={{marginBottom:'16px'}}>
+            {selectedPatient && (
+              <div className="details" style={{backgroundColor: '#e3f2fd', padding: '10px', borderRadius: '5px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px'}}>
+                <p style={{margin: '5px 0', color: '#1565c0'}}><strong>الاسم:</strong> {selectedPatient.firstName} {selectedPatient.lastName}</p>
+                <p style={{margin: '5px 0', color: '#1565c0', display: 'flex', justifyContent: 'space-between'}}><span><strong>العمر:</strong> {selectedPatient.age}</span><span><strong>التاريخ:</strong> {selectedPatient.visitDate}</span></p>
+                <p style={{margin: '5px 0', color: '#1565c0'}}><strong>الهاتف:</strong> {selectedPatient.phone}</p>
+                <p style={{margin: '5px 0', color: '#1565c0'}}><strong>الجنس:</strong> {selectedPatient.gender}</p>
+              </div>
+            )}
             {selectedPatient && (
               <>
                 <h4>التاريخ الطبي:</h4>
@@ -445,20 +513,21 @@ export default function DoctorPage() {
                   {selectedPatient.currentSymptoms?.cough && <li>سعال</li>}
                   {selectedPatient.currentSymptoms?.fatigue && <li>إرهاق</li>}
                 </ul>
+                {selectedPatient.cameraImages && selectedPatient.cameraImages.length > 0 && (
+                  <div>
+                    <h4>الصور :</h4>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {selectedPatient.cameraImages.map((img, index) => (
+                        <img key={index} src={img} alt={`صورة المريض ${index + 1}`} style={{ width: '150px', height: '150px', objectFit: 'cover', border: '1px solid #ccc' }} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <label>
-              التشخيص:
-              <textarea
-                value={diagnosis}
-                onChange={e => setDiagnosis(e.target.value)}
-                className="input"
-                rows="2"
-              />
-            </label>
+          <form>
             <label>
               الوصفة الطبية:
               <textarea
@@ -468,20 +537,22 @@ export default function DoctorPage() {
                 rows="5"
               />
             </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button type="submit" className="btn-primary">حفظ وإنهاء</button>
-              <button type="button" className="btn-outline" onClick={handlePrintPrescription}>طباعة الوصفة</button>
-            </div>
           </form>
+
+          {user && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', borderTop: '2px solid #2a5d9f', paddingTop: '10px' }}>
+              <p><strong>العنوان:</strong> {user.title || 'غير محدد'}</p>
+              <p><strong>الهاتف:</strong> {user.phone || 'غير محدد'}</p>
+            </div>
+          )}
         </div>
 
         {user && (
           <>
             {/* Toggle button for secretary form */}
-            <div style={{flexBasis: '100%', marginTop: '20px', textAlign: 'center'}}>
-              <button className="btn-primary" onClick={() => setShowSecretaryForm(!showSecretaryForm)}>
-                {showSecretaryForm ? 'إخفاء تسجيل السكرتير' : 'تسجيل سكرتير جديد'}
-              </button>
+            <div style={{flexBasis: '100%', marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px'}}>
+              <button type="button" className="btn-primary" onClick={saveAndFinish}>حفظ وإنهاء</button>
+              <button type="button" className="btn-outline" onClick={handlePrintPrescription}>طباعة الوصفة</button>
             </div>
 
             {/* Secretary registration form */}

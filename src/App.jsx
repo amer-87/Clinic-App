@@ -4,8 +4,9 @@ import SecretaryPage from "./SecretaryPage";
 import DoctorPage from "./DoctorPage";
 import OwnerPage from "./OwnerPage";
 import UserListPage from "./UserListPage";
-// Removed import of LoginPage as login screen is removed
-// import LoginPage from "./LoginPage";
+import LoginPage from "./LoginPage";
+import RegistrationPage from "./RegistrationPage";
+import ProtectedRoute from "./ProtectedRoute";
 import './style.css';
 
 // ——————————————
@@ -18,18 +19,23 @@ import { useContext } from "react";
 // Layout
 // ——————————————
 function Layout({ children }) {
-  const { user, getPendingUsers } = useContext(ClinicContext);
+  const { user, getPendingUsers, logout } = useContext(ClinicContext);
   const pendingDoctorsCount = getPendingUsers('doctor').length;
+  
   return (
     <div>
       <header>
         <div className="container">
-          <NavLink to="/reception" className={({isActive})=>isActive?"active":""}>صفحة السكرتير</NavLink>
+          {user && user.role === 'secretary' && (
+            <NavLink to="/reception" className={({isActive})=>isActive?"active":""}>صفحة السكرتير</NavLink>
+          )}
           <div>🩺  عيادة الطبيب</div>
           <div style={{ fontSize: '14px', color: '#fff' }}>
             {new Date().toLocaleString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
           </div>
-          <NavLink to="/doctor" className={({isActive})=>isActive?"active":""}>صفحة الطبيب</NavLink>
+          {user && user.role === 'doctor' && (
+            <NavLink to="/doctor" className={({isActive})=>isActive?"active":""}>صفحة الطبيب</NavLink>
+          )}
           {user && user.role === 'owner' && (
             <NavLink to="/users" className={({isActive})=>isActive?"active":""} style={{ position: 'relative' }}>
               قائمة المستخدمين
@@ -51,6 +57,9 @@ function Layout({ children }) {
               )}
             </NavLink>
           )}
+          {user && (
+            <button onClick={logout} className="logout-btn">تسجيل الخروج</button>
+          )}
         </div>
       </header>
       <main>{children}</main>
@@ -59,40 +68,60 @@ function Layout({ children }) {
   );
 }
 
-function PrivateRoute({ children, allowedRoles }) {
-  const { user } = useContext(ClinicContext);
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  if (user.status !== 'approved') {
-    // Redirect users not approved yet to login
-    return <Navigate to="/login" replace />;
-  }
-  if (!allowedRoles.includes(user.role)) {
-    // Redirect unauthorized users to their page
-    if (user.role === "doctor") return <Navigate to="/doctor" replace />;
-    if (user.role === "secretary") return <Navigate to="/reception" replace />;
-    if (user.role === "owner") return <Navigate to="/owner" replace />;
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-}
-
 // ——————————————
 // App Content Component
 // ——————————————
 function AppContent() {
+  const { user } = useContext(ClinicContext);
+
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Navigate to="/reception" replace />} />
-        <Route path="/reception" element={<SecretaryPage />} />
-        <Route path="/doctor" element={<DoctorPage />} />
-        <Route path="/owner" element={<OwnerPage />} />
-        <Route path="/users" element={<UserListPage />} />
-        <Route path="*" element={<Navigate to="/reception" replace />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegistrationPage />} />
+      
+      <Route path="/" element={
+        user ? (
+          user.role === "doctor" ? <Navigate to="/doctor" replace /> :
+          user.role === "secretary" ? <Navigate to="/reception" replace /> :
+          user.role === "owner" ? <Navigate to="/owner" replace /> :
+          <Navigate to="/login" replace />
+        ) : <Navigate to="/login" replace />
+      } />
+      
+      <Route path="/reception" element={
+        <ProtectedRoute allowedRoles={['secretary', 'doctor', 'owner']}>
+          <Layout>
+            <SecretaryPage />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/doctor" element={
+        <ProtectedRoute allowedRoles={['doctor', 'owner']}>
+          <Layout>
+            <DoctorPage />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/owner" element={
+        <ProtectedRoute allowedRoles={['owner']}>
+          <Layout>
+            <OwnerPage />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/users" element={
+        <ProtectedRoute allowedRoles={['owner']}>
+          <Layout>
+            <UserListPage />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }
 

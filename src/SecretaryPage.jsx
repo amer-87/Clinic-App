@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useClinic } from "./hooks";
 import PatientTable from "./PatientTable";
 import jsPDF from "jspdf";
@@ -55,8 +55,50 @@ export default function SecretaryPage() {
     doc.save("patients_data.pdf");
   }
   const [file, setFile] = useState(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [capturedImages, setCapturedImages] = useState([]);
+  const [stream, setStream] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
+  async function openCamera() {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+      setIsCameraOpen(true);
+    } catch (err) {
+      alert('لا يمكن الوصول إلى الكاميرا: ' + err.message);
+    }
+  }
 
+  function capturePhoto() {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      const dataURL = canvas.toDataURL('image/png');
+      setCapturedImages([...capturedImages, dataURL]);
+      // Do not close camera, allow multiple captures
+    }
+  }
+
+  function deleteImage(index) {
+    setCapturedImages(capturedImages.filter((_, i) => i !== index));
+  }
+
+  function closeCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setIsCameraOpen(false);
+  }
 
   function handleDelete(patient) {
     if(window.confirm(`هل أنت متأكد من حذف المراجع ${patient.name}؟`)) {
@@ -81,6 +123,7 @@ export default function SecretaryPage() {
       }
     });
     setFile(patient.file || null);
+    setCapturedImages(patient.cameraImages || []);
     setShowForm(true);
   }
 
@@ -90,7 +133,8 @@ export default function SecretaryPage() {
       // Update existing patient
       updatePatient(editingPatient.id, {
         ...form,
-        file: file
+        file: file,
+        cameraImages: capturedImages
       });
     } else {
       // Add new patient
@@ -102,7 +146,8 @@ export default function SecretaryPage() {
         status: "waiting",
         diagnosis: "",
         prescription: "",
-        file: file
+        file: file,
+        cameraImages: capturedImages
       };
       addPatient(newPatient);
     }
@@ -122,6 +167,7 @@ export default function SecretaryPage() {
       }
     });
     setFile(null);
+    setCapturedImages([]);
     setEditingPatient(null);
     setShowForm(false);
   }
@@ -263,6 +309,25 @@ export default function SecretaryPage() {
                   className="input"
                 />
               </label>
+            </div>
+
+            <div style={{ marginTop: '16px' }}>
+              <label>صور من الكاميرا</label>
+              {isCameraOpen && <video ref={videoRef} autoPlay style={{ width: '100%', maxWidth: '300px', border: '1px solid #ccc' }} />}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                {capturedImages.map((img, index) => (
+                  <div key={index} style={{ position: 'relative' }}>
+                    <img src={img} alt={`الصورة ${index + 1}`} style={{ width: '100px', height: '100px', objectFit: 'cover', border: '1px solid #ccc' }} />
+                    <button type="button" onClick={() => deleteImage(index)} style={{ position: 'absolute', top: '0', right: '0', background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer' }}>×</button>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
+                <button type="button" onClick={openCamera} className="btn-secondary">فتح الكاميرا</button>
+                {isCameraOpen && <button type="button" onClick={capturePhoto} className="btn-primary">التقاط الصورة</button>}
+                {isCameraOpen && <button type="button" onClick={closeCamera} className="btn-outline">إغلاق الكاميرا</button>}
+              </div>
+              <canvas ref={canvasRef} style={{ display: 'none' }} />
             </div>
 
             <div style={{ marginTop: '16px' }}>

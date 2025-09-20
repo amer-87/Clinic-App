@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار إنشاء روابط الموافقة</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-case { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>اختبار إنشاء روابط الموافقة والرفض</h1>
+    
+    <div class="test-case">
+        <h2>بيانات الطبيب الاختبارية:</h2>
+        <p><strong>البريد الإلكتروني:</strong> doctor.test@example.com</p>
+        
+        <h2>الروابط المنشأة:</h2>
+        <p><strong>رابط الموافقة:</strong> 
+            <span id="approve-link">http://localhost:5173/owner?approve=doctor.test%40example.com</span>
+        </p>
+        <p><strong>رابط الرفض:</strong> 
+            <span id="reject-link">http://localhost:5173/owner?reject=doctor.test%40example.com</span>
+        </p>
+        
+        <h2>اختبار النقر على الروابط:</h2>
+        <p>انقر على الروابط أدناه وافتح لوحة تحكم المالك لمعاينة النتيجة:</p>
+        <a href="http://localhost:5173/owner?approve=doctor.test%40example.com" target="_blank">🔗 رابط الموافقة الاختباري</a>
+        <br>
+        <a href="http://localhost:5173/owner?reject=doctor.test%40example.com" target="_blank">🔗 رابط الرفض الاختباري</a>
+    </div>
+
+    <div class="test-case">
+        <h2>التكوين الحالي:</h2>
+        <p><strong>بريد المالك:</strong> aamerblack@gmail.com</p>
+        <p><strong>معرف الخدمة:</strong> service_54hd7ve</p>
+        <p><strong>معرف القالب:</strong> template_yk39dej</p>
+        <p><strong>معرف المستخدم:</strong> 3R6jOm-e7QM3YUCAT</p>
+        <p><strong>الرابط الأساسي:</strong> http://localhost:5173/owner</p>
+    </div>
+
+    <script>
+        // Test URL generation
+        const baseURL = 'http://localhost:5173/owner';
+        const testEmail = 'doctor.test@example.com';
+        
+        const approveURL = `${baseURL}?approve=${encodeURIComponent(testEmail)}`;
+        const rejectURL = `${baseURL}?reject=${encodeURIComponent(testEmail)}`;
+        
+        document.getElementById('approve-link').textContent = approveURL;
+        document.getElementById('reject-link').textContent = rejectURL;
+        
+        console.log('URLs generated successfully:');
+        console.log('Approve URL:', approveURL);
+        console.log('Reject URL:', rejectURL);
+    </script>
+</body>
+</html>

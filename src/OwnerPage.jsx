@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ClinicContext } from "./context";
-import emailjs from '@emailjs/browser';
+import { sendApprovalNotification, sendRejectionNotification } from "./helpers";
 
 export default function OwnerPage() {
   const { user, getPendingUsers, approveUser, rejectUser, logout } = useContext(ClinicContext);
@@ -10,9 +10,37 @@ export default function OwnerPage() {
 
   console.log("Pending doctors for approval:", pendingDoctors);
 
-  const handleReject = (email) => {
+  const handleApprove = async (email) => {
+    // Find the doctor to get their actual password
+    const doctor = pendingDoctors.find(doc => doc.email === email);
+    if (!doctor) {
+      alert("لم يتم العثور على الطبيب للموافقة عليه.");
+      return;
+    }
+    
+    approveUser(email, user.email, doctor.password);
+    
+    try {
+      await sendApprovalNotification(email, doctor.password);
+      alert("تمت الموافقة على الطبيب. يمكنه الآن تسجيل الدخول باستخدام كلمة المرور التي أدخلها أثناء التسجيل.");
+    } catch (error) {
+      console.error("Failed to send approval email:", error);
+      alert("تمت الموافقة على الطبيب، ولكن حدث خطأ في إرسال البريد الإلكتروني.");
+    }
+  };
+
+
+  const handleReject = async (email) => {
+    const reason = prompt("يرجى إدخال سبب الرفض (اختياري):");
     rejectUser(email, user.email);
-    alert("تم رفض طلب الطبيب.");
+    
+    try {
+      await sendRejectionNotification(email, reason);
+      alert("تم رفض طلب الطبيب وإرسال إشعار بالبريد الإلكتروني.");
+    } catch (error) {
+      console.error("Failed to send rejection email:", error);
+      alert("تم رفض طلب الطبيب، ولكن حدث خطأ في إرسال البريد الإلكتروني.");
+    }
   };
 
   useEffect(() => {
@@ -32,37 +60,6 @@ export default function OwnerPage() {
       }
     }
   }, [user, navigate]);
-
-  const generateTempPassword = () => {
-    return Math.random().toString(36).slice(-8);
-  };
-
-  const sendEmail = (to, subject, body) => {
-    // Use emailjs to send email instead of alert
-    const serviceID = 'your_service_id';
-    const templateID = 'your_template_id';
-    const userID = 'your_user_id';
-
-    const templateParams = {
-      to_email: to,
-      subject: subject,
-      message: body,
-    };
-
-    emailjs.send(serviceID, templateID, templateParams, userID)
-      .then((response) => {
-        console.log('Email sent successfully!', response.status, response.text);
-      }, (err) => {
-        console.error('Failed to send email:', err);
-      });
-  };
-
-  const handleApprove = (email) => {
-    const tempPassword = generateTempPassword();
-    approveUser(email, user.email, tempPassword);
-    sendEmail(email, "تم إنشاء حسابك في عيادة الطبيب", `تمت الموافقة على حسابك.\nكلمة المرور المؤقتة: ${tempPassword}\nيرجى تغيير كلمة المرور بعد تسجيل الدخول.`);
-    alert("تمت الموافقة على الطبيب وإرسال كلمة المرور المؤقتة.");
-  };
 
   return (
     <div className="page">

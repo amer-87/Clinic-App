@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmailJS Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+        // Initialize EmailJS with your User ID
+        emailjs.init('3R6jOm-e7QM3YUCAT');
+        
+        function testEmail() {
+            const templateParams = {
+                to_email: 'aamerblack@gmail.com',
+                name: 'Test Doctor',
+                email: 'test@example.com',
+                phone: '1234567890',
+                specialization: 'General Medicine',
+                experience: '5',
+                licenseNumber: 'MED12345',
+                date: new Date().toLocaleString('ar-EG'),
+                from_name: 'Clinic Management System'
+            };
+            
+            console.log('Testing EmailJS with template ID: template_4dg9cwd');
+            console.log('Service ID: service_54hd7ve');
+            console.log('Template params:', templateParams);
+            
+            emailjs.send('service_54hd7ve', 'template_4dg9cwd', templateParams)
+                .then(function(response) {
+                    console.log('SUCCESS!', response.status, response.text);
+                    document.getElementById('result').innerHTML = '✅ Email sent successfully! Status: ' + response.status;
+                })
+                .catch(function(error) {
+                    console.error('FAILED...', error);
+                    document.getElementById('result').innerHTML = '❌ Email failed: ' + error.text;
+                });
+        }
+    </script>
+</head>
+<body>
+    <h1>EmailJS Configuration Test</h1>
+    <button onclick="testEmail()">Test Email Sending</button>
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+    
+    <div style="margin-top: 20px;">
+        <h3>Current Configuration:</h3>
+        <p><strong>Service ID:</strong> service_54hd7ve</p>
+        <p><strong>Template ID:</strong> template_4dg9cwd</p>
+        <p><strong>User ID:</strong> 3R6jOm-e7QM3YUCAT</p>
+        <p><strong>Owner Email:</strong> aamerblack@gmail.com</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار تكوين EmailJS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-case { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        button { margin: 5px; padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #console { background: #f4f4f4; padding: 15px; border-radius: 5px; margin-top: 20px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>اختبار تكوين EmailJS وإرسال البريد</h1>
+    
+    <div class="test-case">
+        <h2>التكوين الحالي:</h2>
+        <p><strong>معرف الخدمة:</strong> service_54hd7ve</p>
+        <p><strong>معرف القالب:</strong> template_yk39dej</p>
+        <p><strong>معرف المستخدم:</strong> 3R6jOm-e7QM3YUCAT</p>
+        <p><strong>بريد المالك:</strong> aamerblack@gmail.com</p>
+        
+        <button onclick="testEmailJSConfig()">اختبار تكوين EmailJS</button>
+        <button onclick="testSendEmail()">اختبار إرسال بريد</button>
+    </div>
+
+    <div id="console"></div>
+
+    <script>
+        const consoleDiv = document.getElementById('console');
+        
+        function log(message, type = 'info') {
+            const p = document.createElement('p');
+            p.className = type;
+            p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleDiv.appendChild(p);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function testEmailJSConfig() {
+            log('بدء اختبار تكوين EmailJS...');
+            
+            try {
+                // Initialize EmailJS
+                emailjs.init('3R6jOm-e7QM3YUCAT');
+                log('✅ EmailJS تم تهيئة بنجاح', 'success');
+                
+                // Test service availability
+                emailjs.send('service_54hd7ve', 'template_yk39dej', {
+                    to_email: 'test@example.com',
+                    subject: 'Test Email',
+                    message: 'This is a test email'
+                })
+                .then(response => {
+                    log('✅ تم إرسال البريد الاختباري بنجاح', 'success');
+                    log('Response: ' + JSON.stringify(response), 'info');
+                })
+                .catch(error => {
+                    log('❌ فشل إرسال البريد الاختباري', 'error');
+                    log('Error: ' + JSON.stringify(error), 'error');
+                    log('التحقق من:');
+                    log('1. Service ID: service_54hd7ve');
+                    log('2. Template ID: template_yk39dej'); 
+                    log('3. User ID: 3R6jOm-e7QM3YUCAT');
+                    log('4. تأكد من وجود القالب في حساب EmailJS');
+                });
+                
+            } catch (error) {
+                log('❌ فشل تهيئة EmailJS', 'error');
+                log('Error: ' + error.message, 'error');
+            }
+        }
+
+        function testSendEmail() {
+            log('بدء اختبار إرسال بريد إلى المالك...');
+            
+            const testData = {
+                name: "دكتور اختبار",
+                email: "doctor.test@example.com",
+                phone: "0123456789",
+                specialization: "طب الاختبار",
+                title: "دكتور",
+                licenseNumber: "TEST123",
+                approve_url: "http://localhost:5173/owner?approve=doctor.test@example.com",
+                reject_url: "http://localhost:5173/owner?reject=doctor.test@example.com"
+            };
+            
+            emailjs.send('service_54hd7ve', 'template_yk39dej', {
+                to_email: 'aamerblack@gmail.com',
+                name: testData.name,
+                email: testData.email,
+                phone: testData.phone,
+                specialization: testData.specialization,
+                title: testData.title,
+                licenseNumber: testData.licenseNumber,
+                date: new Date().toLocaleString('ar-EG'),
+                approve_url: testData.approve_url,
+                reject_url: testData.reject_url,
+                from_name: 'Clinic Management System'
+            })
+            .then(response => {
+                log('✅ تم إرسال بريد الموافقة إلى المالك بنجاح', 'success');
+                log('Response: ' + JSON.stringify(response), 'info');
+            })
+            .catch(error => {
+                log('❌ فشل إرسال بريد الموافقة', 'error');
+                log('Error: ' + JSON.stringify(error), 'error');
+            });
+        }
+    </script>
+</body>
+</html>
