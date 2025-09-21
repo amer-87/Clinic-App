@@ -1,1 +1,2 @@
-- [x] Move the "تسجيل سكرتير جديد" button next to the "حفظ البيانات" button below the table in DoctorPage.jsx
+- [x] Change textarea style in DoctorPage.jsx to textAlign: 'left' for LTR writing
+- [x] Update print function CSS to align prescription text to the left

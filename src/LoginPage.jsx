@@ -12,6 +12,7 @@ export default function LoginPage() {
     password: ""
   });
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -46,27 +47,38 @@ export default function LoginPage() {
         <h2>تسجيل الدخول</h2>
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="username">اسم المستخدم:</label>
+            <label htmlFor="username">البريد الإلكتروني:</label>
             <input
               type="text"
               id="username"
               name="username"
               value={credentials.username}
               onChange={handleInputChange}
-              placeholder="أدخل اسم المستخدم"
+              placeholder="أدخل البريد الإلكتروني"
             />
           </div>
           
           <div className="form-group">
             <label htmlFor="password">كلمة المرور:</label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               name="password"
               value={credentials.password}
               onChange={handleInputChange}
               placeholder="أدخل كلمة المرور"
             />
+            <div style={{ marginTop: '5px' }}>
+              <label style={{ fontSize: '14px', display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  style={{ marginRight: '5px' }}
+                />
+                إظهار كلمة المرور
+              </label>
+            </div>
           </div>
 
           {error && <div className="error-message">{error}</div>}

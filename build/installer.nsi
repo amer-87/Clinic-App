@@ -6,18 +6,15 @@ Unicode true
 
 ; Basic installer settings
 Name "Clinic App"
-OutFile "..\dist-electron\ClinicAppSetup.exe"
-InstallDir "$PROGRAMFILES\Clinic App"
+OutFile "..\dist-electron\ClinicAppSetup2.exe"
+InstallDir "$PROGRAMFILES64\Clinic App"
 RequestExecutionLevel admin
 
 ; Modern UI Configuration
 !define MUI_ABORTWARNING
-!define MUI_ICON "icon.ico"
-!define MUI_UNICON "icon.ico"
 
 ; Installer pages
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "..\LICENSE.electron.txt"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH

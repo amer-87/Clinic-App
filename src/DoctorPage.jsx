@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef } from "react";
+import React, { useState, useContext, useRef, useEffect } from "react";
 import { useClinic } from "./hooks";
 import { ClinicContext } from "./context";
 import PatientTable from "./PatientTable";
@@ -46,8 +46,43 @@ export default function DoctorPage() {
   const [stream, setStream] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const prescriptionRef = useRef(null);
+  const firstNameRef = useRef(null);
+  const ageRef = useRef(null);
+  const genderRef = useRef(null);
+  const phoneRef = useRef(null);
+  const addressRef = useRef(null);
+  const medicalRef = useRef(null);
+  const diabetesRef = useRef(null);
+  const hypertensionRef = useRef(null);
+  const asthmaRef = useRef(null);
+  const allergiesRef = useRef(null);
+  const otherRef = useRef(null);
 
-  const patients = state.patients;
+  const patients = state.patients.sort((a, b) => b.createdAt - a.createdAt);
+
+  useEffect(() => {
+    if (isCameraOpen && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.load();
+      videoRef.current.play().catch(err => alert('فشل تشغيل الفيديو: ' + err.message));
+    }
+  }, [isCameraOpen, stream]);
+
+  useEffect(() => {
+    if (showForm && !editingPatient && firstNameRef.current) {
+      firstNameRef.current.focus();
+    }
+  }, [showForm, editingPatient]);
+
+  function formatPrescription(text) {
+    if (!text) return "RX\n\n- ";
+    let lines = text.split('\n');
+    if (lines[0] !== 'RX') {
+      lines = ['RX', '', ...lines];
+    }
+    return lines.map(line => line === 'RX' || line === '' ? line : line.startsWith('-') ? line : '- ' + line.trim()).join('\n');
+  }
 
   async function handleSavePDF() {
     const doc = new jsPDF('p', 'mm', 'a4');
@@ -110,34 +145,38 @@ export default function DoctorPage() {
           <title>الوصفة الطبية</title>
           <style>
             @page { size: A4; margin: 0; }
-            body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; margin: 0; background-color: #f8fafc; display: flex; flex-direction: column; justify-content: space-between; }
-            .card { background-color: #fff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 16px; width: 100%; max-width: 800px; margin: 0 auto; }
+            body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; margin: 0; background-color: #f8fafc; }
+            .container { position: relative; height: 1000px; }
+            .card { background-color: #fff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 16px; width: 100%; max-width: 800px; margin: 0 auto; max-height: 950px; overflow: hidden; }
             .details { background-color: #e3f2fd; padding: 10px; border-radius: 5px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-bottom: 16px; }
             .details p { margin: 5px 0; color: #1565c0; }
-            .prescription { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 12px; background-color: #fff; min-height: 700px; white-space: pre-wrap; margin-bottom: 16px; }
-            .prescription p { margin: 0; font-size: 20px; line-height: 1.5; }
+            .prescription { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 12px; background-color: #fff; min-height: 600px; white-space: pre-wrap; margin-bottom: 16px; }
+            .prescription p { margin: 0; font-size: 20px; line-height: 1.5; text-align: left; }
+            .footer { position: absolute; bottom: 0; left: 20px; right: 20px; display: flex; justify-content: space-between; border-top: 2px solid #2a5d9f; padding-top: 10px; }
           </style>
         </head>
         <body>
-          <div class="card">
-            <div class="doctor-info" style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2a5d9f; padding-bottom: 10px;">
-              <p><strong>الدكتور</strong></p>
-              <p> ${user ? user.name : 'غير محدد'}</p>
-              <p><strong>التخصص:</strong> ${user ? user.specialization || 'غير محدد' : 'غير محدد'}</p>
+          <div class="container">
+            <div class="card">
+              <div class="doctor-info" style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2a5d9f; padding-bottom: 10px  ; ">
+                <p><strong>الدكتور</strong></p>
+                <p> ${user ? user.name : 'غير محدد'}</p>
+                <p><strong>التخصص:</strong> ${user ? user.specialization || 'غير محدد' : 'غير محدد'}</p>
+              </div>
+              <div class="details">
+                <p><strong>الاسم:</strong> ${selectedPatient.firstName} ${selectedPatient.lastName}</p>
+                <p style="display: flex; justify-content: space-between;"><span><strong>العمر:</strong> ${selectedPatient.age}</span><span><strong>التاريخ:</strong> ${selectedPatient.visitDate}</span></p>
+                <p><strong>الهاتف:</strong> ${selectedPatient.phone}</p>
+                <p><strong>الجنس:</strong> ${selectedPatient.gender}</p>
+              </div>
+              <div class="prescription">
+                <p>${prescription || 'غير محدد'}</p>
+              </div>
             </div>
-            <div class="details">
-              <p><strong>الاسم:</strong> ${selectedPatient.firstName} ${selectedPatient.lastName}</p>
-              <p style="display: flex; justify-content: space-between;"><span><strong>العمر:</strong> ${selectedPatient.age}</span><span><strong>التاريخ:</strong> ${selectedPatient.visitDate}</span></p>
-              <p><strong>الهاتف:</strong> ${selectedPatient.phone}</p>
-              <p><strong>الجنس:</strong> ${selectedPatient.gender}</p>
+            <div class="footer">
+              <p><strong>العنوان:</strong> ${user ? user.title || 'غير محدد' : 'غير محدد'}</p>
+              <p><strong>الهاتف:</strong> ${user ? user.phone || 'غير محدد' : 'غير محدد'}</p>
             </div>
-            <div class="prescription">
-              <p>${prescription || 'غير محدد'}</p>
-            </div>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-button: 50px; border-top: 2px solid #2a5d9f; padding-top: 10px;">
-            <p><strong>العنوان:</strong> ${user ? user.title || 'غير محدد' : 'غير محدد'}</p>
-            <p><strong>الهاتف:</strong> ${user ? user.phone || 'غير محدد' : 'غير محدد'}</p>
           </div>
         </body>
       </html>
@@ -149,7 +188,25 @@ export default function DoctorPage() {
 
   function handleSelect(patient) {
     setSelectedPatient(patient);
-    setPrescription(patient.prescription || "");
+    const pres = patient.prescription || "";
+    setPrescription(formatPrescription(pres));
+  }
+
+
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const textarea = prescriptionRef.current;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const value = prescription;
+      const newValue = value.substring(0, start) + '\n' + value.substring(end);
+      setPrescription(formatPrescription(newValue));
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 3;
+      }, 0);
+    }
   }
 
   function saveAndFinish() {
@@ -257,9 +314,6 @@ export default function DoctorPage() {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
       setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
       setIsCameraOpen(true);
     } catch (err) {
       alert('لا يمكن الوصول إلى الكاميرا: ' + err.message);
@@ -276,7 +330,7 @@ export default function DoctorPage() {
       ctx.drawImage(video, 0, 0);
       const dataURL = canvas.toDataURL('image/png');
       setCapturedImages([...capturedImages, dataURL]);
-      // Do not close camera, allow multiple captures
+      closeCamera(); // Close camera after capture
     }
   }
 
@@ -305,7 +359,7 @@ export default function DoctorPage() {
       {showForm && (
         <div className="card" style={{ marginBottom: '20px' }}>
           <h3>{editingPatient ? 'تعديل معلومات المريض' : 'إضافة مريض جديد'}</h3>
-          <form onSubmit={handleFormSubmit}>
+          <form onSubmit={handleFormSubmit} onKeyDown={e => { if(e.key === 'Enter') e.preventDefault(); }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <label>
                 الاسم الثلاثي
@@ -313,6 +367,8 @@ export default function DoctorPage() {
                   type="text"
                   value={form.firstName}
                   onChange={e => setForm({ ...form, firstName: e.target.value })}
+                  onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); ageRef.current.focus(); } }}
+                  ref={firstNameRef}
                   className="input"
                   required
                 />
@@ -323,42 +379,65 @@ export default function DoctorPage() {
                   type="number"
                   value={form.age}
                   onChange={e => setForm({ ...form, age: e.target.value })}
+                  onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); phoneRef.current.focus(); } }}
+                  ref={ageRef}
                   className="input"
                   required
                 />
-              </label>
-              <label>
-                الجنس
-                <select
-                  value={form.gender}
-                  onChange={e => setForm({ ...form, gender: e.target.value })}
-                  className="input"
-                  required
-                >
-                  <option value="">اختر الجنس</option>
-                  <option value="ذكر">ذكر</option>
-                  <option value="أنثى">أنثى</option>
-                </select>
               </label>
               <label>
                 الهاتف
                 <input
                   type="tel"
                   value={form.phone}
-                  onChange={e => setForm({ ...form, phone: e.target.value })}
+                  onChange={e => setForm({ ...form, phone: e.target.value.replace(/[^0-9]/g, '') })}
+                  onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); addressRef.current.focus(); } }}
+                  ref={phoneRef}
                   className="input"
                   required
                 />
               </label>
+              <label>
+                العنوان
+                <input
+                  type="text"
+                  value={form.address}
+                  onChange={e => setForm({ ...form, address: e.target.value })}
+                  onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); genderRef.current.focus(); } }}
+                  ref={addressRef}
+                  className="input"
+                />
+              </label>
             </div>
             <label>
-              العنوان
-              <input
-                type="text"
-                value={form.address}
-                onChange={e => setForm({ ...form, address: e.target.value })}
-                className="input"
-              />
+              الجنس
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <label>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="ذكر"
+                    checked={form.gender === "ذكر"}
+                    onChange={e => setForm({ ...form, gender: e.target.value })}
+                    onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); medicalRef.current.focus(); } }}
+                    ref={genderRef}
+                    required
+                  />
+                  ذكر
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="أنثى"
+                    checked={form.gender === "أنثى"}
+                    onChange={e => setForm({ ...form, gender: e.target.value })}
+                    onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); medicalRef.current.focus(); } }}
+                    required
+                  />
+                  أنثى
+                </label>
+              </div>
             </label>
 
             <div style={{ marginTop: '16px' }}>
@@ -372,6 +451,20 @@ export default function DoctorPage() {
                       ...form,
                       medicalHistory: { ...form.medicalHistory, diabetes: e.target.checked }
                     })}
+                    onKeyDown={e => {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        hypertensionRef.current.focus();
+                      } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setForm({
+                          ...form,
+                          medicalHistory: { ...form.medicalHistory, diabetes: !form.medicalHistory.diabetes }
+                        });
+                        hypertensionRef.current.focus();
+                      }
+                    }}
+                    ref={diabetesRef}
                   />
                   السكري
                 </label>
@@ -383,6 +476,23 @@ export default function DoctorPage() {
                       ...form,
                       medicalHistory: { ...form.medicalHistory, hypertension: e.target.checked }
                     })}
+                    onKeyDown={e => {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        asthmaRef.current.focus();
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        diabetesRef.current.focus();
+                      } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setForm({
+                          ...form,
+                          medicalHistory: { ...form.medicalHistory, hypertension: !form.medicalHistory.hypertension }
+                        });
+                        asthmaRef.current.focus();
+                      }
+                    }}
+                    ref={hypertensionRef}
                   />
                   ارتفاع ضغط الدم
                 </label>
@@ -394,6 +504,23 @@ export default function DoctorPage() {
                       ...form,
                       medicalHistory: { ...form.medicalHistory, asthma: e.target.checked }
                     })}
+                    onKeyDown={e => {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        allergiesRef.current.focus();
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        hypertensionRef.current.focus();
+                      } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setForm({
+                          ...form,
+                          medicalHistory: { ...form.medicalHistory, asthma: !form.medicalHistory.asthma }
+                        });
+                        allergiesRef.current.focus();
+                      }
+                    }}
+                    ref={asthmaRef}
                   />
                   الربو
                 </label>
@@ -405,6 +532,23 @@ export default function DoctorPage() {
                       ...form,
                       medicalHistory: { ...form.medicalHistory, allergies: e.target.checked }
                     })}
+                    onKeyDown={e => {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        otherRef.current.focus();
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        asthmaRef.current.focus();
+                      } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setForm({
+                          ...form,
+                          medicalHistory: { ...form.medicalHistory, allergies: !form.medicalHistory.allergies }
+                        });
+                        otherRef.current.focus();
+                      }
+                    }}
+                    ref={allergiesRef}
                   />
                   الحساسية
                 </label>
@@ -425,7 +569,7 @@ export default function DoctorPage() {
 
             <div style={{ marginTop: '16px' }}>
               <label>صور من الكاميرا</label>
-              {isCameraOpen && <video ref={videoRef} autoPlay style={{ width: '100%', maxWidth: '300px', border: '1px solid #ccc' }} />}
+              {isCameraOpen && <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', maxWidth: '300px', border: '1px solid #ccc' }} />}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
                 {capturedImages.map((img, index) => (
                   <div key={index} style={{ position: 'relative' }}>
@@ -435,7 +579,7 @@ export default function DoctorPage() {
                 ))}
               </div>
               <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-                <button type="button" onClick={openCamera} className="btn-secondary">فتح الكاميرا</button>
+                {!isCameraOpen && <button type="button" onClick={openCamera} className="btn-secondary">فتح الكاميرا</button>}
                 {isCameraOpen && <button type="button" onClick={capturePhoto} className="btn-primary">التقاط الصورة</button>}
                 {isCameraOpen && <button type="button" onClick={closeCamera} className="btn-outline">إغلاق الكاميرا</button>}
               </div>
@@ -480,7 +624,7 @@ export default function DoctorPage() {
         <div className="card" style={{flex:'1 1 500px'}}>
           {/* Doctor Information Section */}
           {user && (
-            <div className="doctor-info" style={{textAlign: 'center', marginBottom: '20px', borderBottom: '2px solid #2a5d9f', paddingBottom: '10px', backgroundColor: '#e3f2fd'}}>
+            <div className="doctor-info" style={{textAlign: 'center', marginBottom: '20px', borderBottom: '2px solid #2a5d9f', paddingBottom: '10px', backgroundColor: '#e3f2fd', borderRadius: '20px'}}>
               <p><strong>الدكتور</strong></p>
               <p>{user.name}</p>
               <p><strong>التخصص:</strong> {user.specialization || 'غير محدد'}</p>
@@ -529,15 +673,19 @@ export default function DoctorPage() {
 
           <form>
             <label>
-              الوصفة الطبية:
               <textarea
+                ref={prescriptionRef}
                 value={prescription}
                 onChange={e => setPrescription(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="input"
-                rows="5"
+                rows="15"
+                style={{ fontSize: '18px', textAlign: 'left', direction: 'ltr' }}
               />
             </label>
           </form>
+
+
 
           {user && (
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', borderTop: '2px solid #2a5d9f', paddingTop: '10px' }}>

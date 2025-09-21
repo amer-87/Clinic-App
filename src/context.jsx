@@ -107,6 +107,17 @@ function usersReducer(state, action) {
         )
       };
     }
+    case "UPDATE_OWNER": {
+      const { newEmail, newPassword } = action.payload;
+      return {
+        ...state,
+        users: state.users.map(u =>
+          u.role === 'owner'
+            ? { ...u, email: newEmail, password: newPassword }
+            : u
+        )
+      };
+    }
     default:
       return state;
   }
@@ -160,13 +171,13 @@ export function ClinicProvider({ children }) {
     login: (username, password) => {
       console.log("Login attempt:", username, password);
       console.log("Available users:", usersState.users);
-      
+
       const user = usersState.users.find(
-        u => u.email === username && u.password === password && u.status === 'approved'
+        u => u.email.toLowerCase() === username.toLowerCase() && u.password.toLowerCase() === password.toLowerCase() && u.status === 'approved'
       );
-      
+
       console.log("Found user:", user);
-      
+
       if (user) {
         userDispatch({ type: "SET_USER", payload: user });
         return true;
@@ -183,6 +194,7 @@ export function ClinicProvider({ children }) {
     approveUser: (email, approvedBy, tempPassword) => usersDispatch({ type: "APPROVE_USER", payload: { email, approvedBy, tempPassword } }),
     rejectUser: (email, rejectedBy) => usersDispatch({ type: "REJECT_USER", payload: { email, rejectedBy } }),
     setPassword: (email, password) => usersDispatch({ type: "SET_PASSWORD", payload: { email, password } }),
+    updateOwner: (newEmail, newPassword) => usersDispatch({ type: "UPDATE_OWNER", payload: { newEmail, newPassword } }),
     addSecretary: (name, email, doctorEmail, password) => usersDispatch({ type: "ADD_SECRETARY", payload: { name, email, doctorEmail, password } }),
     getPendingUsers: (role) => usersState.users.filter(u => u.status === 'pending' && u.role === role)
   }), [userState.user, usersState.users]);

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useClinic } from "./hooks";
 import PatientTable from "./PatientTable";
 import jsPDF from "jspdf";
@@ -36,7 +36,35 @@ export default function SecretaryPage() {
       alert('لم يتم العثور على جدول البيانات للطباعة.');
       return;
     }
-    const canvas = await html2canvas(table, { scale: 2 });
+
+    // Create a container with date and table
+    const container = document.createElement('div');
+    container.style.width = '210mm'; // A4 width
+    container.style.padding = '20px';
+    container.style.fontFamily = 'Arial, sans-serif';
+    container.style.direction = 'rtl';
+    container.style.backgroundColor = '#fff';
+
+    // Add date header
+    const dateHeader = document.createElement('h2');
+    dateHeader.textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    dateHeader.style.textAlign = 'center';
+    dateHeader.style.marginBottom = '20px';
+    dateHeader.style.color = '#2a5d9f';
+    container.appendChild(dateHeader);
+
+    // Clone the table and append
+    const tableClone = table.cloneNode(true);
+    // Remove action buttons from clone
+    const actionCells = tableClone.querySelectorAll('td:last-child, th:last-child');
+    actionCells.forEach(cell => cell.remove());
+    container.appendChild(tableClone);
+
+    document.body.appendChild(container);
+
+    const canvas = await html2canvas(container, { scale: 2 });
+    document.body.removeChild(container);
+
     const imgData = canvas.toDataURL('image/png');
     const doc = new jsPDF('p', 'mm', 'a4');
     const imgWidth = 210; // A4 width in mm
@@ -60,14 +88,22 @@ export default function SecretaryPage() {
   const [stream, setStream] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const firstNameRef = useRef(null);
+  const ageRef = useRef(null);
+  const genderRef = useRef(null);
+  const phoneRef = useRef(null);
+  const addressRef = useRef(null);
+  const medicalRef = useRef(null);
+  const diabetesRef = useRef(null);
+  const hypertensionRef = useRef(null);
+  const asthmaRef = useRef(null);
+  const allergiesRef = useRef(null);
+  const otherRef = useRef(null);
 
   async function openCamera() {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
       setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
       setIsCameraOpen(true);
     } catch (err) {
       alert('لا يمكن الوصول إلى الكاميرا: ' + err.message);
@@ -84,7 +120,7 @@ export default function SecretaryPage() {
       ctx.drawImage(video, 0, 0);
       const dataURL = canvas.toDataURL('image/png');
       setCapturedImages([...capturedImages, dataURL]);
-      // Do not close camera, allow multiple captures
+      closeCamera(); // Close camera after capture
     }
   }
 
@@ -173,7 +209,21 @@ export default function SecretaryPage() {
   }
 
   const filteredPatients = state.patients
-    .sort((a, b) => a.createdAt - b.createdAt);
+    .sort((a, b) => b.createdAt - a.createdAt);
+
+  useEffect(() => {
+    if (isCameraOpen && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.load();
+      videoRef.current.play().catch(err => alert('فشل تشغيل الفيديو: ' + err.message));
+    }
+  }, [isCameraOpen, stream]);
+
+  useEffect(() => {
+    if (showForm && !editingPatient && firstNameRef.current) {
+      firstNameRef.current.focus();
+    }
+  }, [showForm, editingPatient]);
 
   return (
     <div className="page">
@@ -193,7 +243,7 @@ export default function SecretaryPage() {
       {showForm && (
         <div className="card" style={{ marginBottom: '20px' }}>
           <h3>{editingPatient ? 'تعديل معلومات المريض' : 'إضافة مريض جديد'}</h3>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} onKeyDown={e => { if(e.key === 'Enter') e.preventDefault(); }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <label>
                 الاسم الثلاثي
@@ -201,6 +251,8 @@ export default function SecretaryPage() {
                   type="text"
                   value={form.firstName}
                   onChange={e => setForm({ ...form, firstName: e.target.value })}
+                  onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); ageRef.current.focus(); } }}
+                  ref={firstNameRef}
                   className="input"
                   required
                 />
@@ -211,29 +263,20 @@ export default function SecretaryPage() {
                   type="number"
                   value={form.age}
                   onChange={e => setForm({ ...form, age: e.target.value })}
+                  onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); phoneRef.current.focus(); } }}
+                  ref={ageRef}
                   className="input"
                   required
                 />
-              </label>
-              <label>
-                الجنس
-                <select
-                  value={form.gender}
-                  onChange={e => setForm({ ...form, gender: e.target.value })}
-                  className="input"
-                  required
-                >
-                  <option value="">اختر الجنس</option>
-              <option value="ذكر">ذكر</option>
-              <option value="أنثى">أنثى</option>
-                </select>
               </label>
               <label>
                 الهاتف
                 <input
                   type="tel"
                   value={form.phone}
-                  onChange={e => setForm({ ...form, phone: e.target.value })}
+                  onChange={e => setForm({ ...form, phone: e.target.value.replace(/[^0-9]/g, '') })}
+                  onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); addressRef.current.focus(); } }}
+                  ref={phoneRef}
                   className="input"
                   required
                 />
@@ -244,10 +287,42 @@ export default function SecretaryPage() {
                   type="text"
                   value={form.address}
                   onChange={e => setForm({ ...form, address: e.target.value })}
+                  onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); genderRef.current.focus(); } }}
+                  ref={addressRef}
                   className="input"
                 />
               </label>
             </div>
+            <label>
+              الجنس
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <label>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="ذكر"
+                    checked={form.gender === "ذكر"}
+                    onChange={e => setForm({ ...form, gender: e.target.value })}
+                    onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); medicalRef.current.focus(); } }}
+                    ref={genderRef}
+                    required
+                  />
+                  ذكر
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="أنثى"
+                    checked={form.gender === "أنثى"}
+                    onChange={e => setForm({ ...form, gender: e.target.value })}
+                    onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); medicalRef.current.focus(); } }}
+                    required
+                  />
+                  أنثى
+                </label>
+              </div>
+            </label>
 
             <div style={{ marginTop: '16px' }}>
               <h4>التاريخ الطبي</h4>
@@ -260,6 +335,20 @@ export default function SecretaryPage() {
                       ...form,
                       medicalHistory: { ...form.medicalHistory, diabetes: e.target.checked }
                     })}
+                    onKeyDown={e => {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        hypertensionRef.current.focus();
+                      } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setForm({
+                          ...form,
+                          medicalHistory: { ...form.medicalHistory, diabetes: !form.medicalHistory.diabetes }
+                        });
+                        hypertensionRef.current.focus();
+                      }
+                    }}
+                    ref={diabetesRef}
                   />
                   السكري
                 </label>
@@ -271,6 +360,23 @@ export default function SecretaryPage() {
                       ...form,
                       medicalHistory: { ...form.medicalHistory, hypertension: e.target.checked }
                     })}
+                    onKeyDown={e => {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        asthmaRef.current.focus();
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        diabetesRef.current.focus();
+                      } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setForm({
+                          ...form,
+                          medicalHistory: { ...form.medicalHistory, hypertension: !form.medicalHistory.hypertension }
+                        });
+                        asthmaRef.current.focus();
+                      }
+                    }}
+                    ref={hypertensionRef}
                   />
                   ارتفاع ضغط الدم
                 </label>
@@ -282,6 +388,23 @@ export default function SecretaryPage() {
                       ...form,
                       medicalHistory: { ...form.medicalHistory, asthma: e.target.checked }
                     })}
+                    onKeyDown={e => {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        allergiesRef.current.focus();
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        hypertensionRef.current.focus();
+                      } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setForm({
+                          ...form,
+                          medicalHistory: { ...form.medicalHistory, asthma: !form.medicalHistory.asthma }
+                        });
+                        allergiesRef.current.focus();
+                      }
+                    }}
+                    ref={asthmaRef}
                   />
                   الربو
                 </label>
@@ -293,6 +416,23 @@ export default function SecretaryPage() {
                       ...form,
                       medicalHistory: { ...form.medicalHistory, allergies: e.target.checked }
                     })}
+                    onKeyDown={e => {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        otherRef.current.focus();
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        asthmaRef.current.focus();
+                      } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setForm({
+                          ...form,
+                          medicalHistory: { ...form.medicalHistory, allergies: !form.medicalHistory.allergies }
+                        });
+                        otherRef.current.focus();
+                      }
+                    }}
+                    ref={allergiesRef}
                   />
                   الحساسية
                 </label>
@@ -313,7 +453,7 @@ export default function SecretaryPage() {
 
             <div style={{ marginTop: '16px' }}>
               <label>صور من الكاميرا</label>
-              {isCameraOpen && <video ref={videoRef} autoPlay style={{ width: '100%', maxWidth: '300px', border: '1px solid #ccc' }} />}
+              {isCameraOpen && <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', maxWidth: '300px', border: '1px solid #ccc' }} />}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
                 {capturedImages.map((img, index) => (
                   <div key={index} style={{ position: 'relative' }}>
@@ -323,7 +463,7 @@ export default function SecretaryPage() {
                 ))}
               </div>
               <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-                <button type="button" onClick={openCamera} className="btn-secondary">فتح الكاميرا</button>
+                {!isCameraOpen && <button type="button" onClick={openCamera} className="btn-secondary">فتح الكاميرا</button>}
                 {isCameraOpen && <button type="button" onClick={capturePhoto} className="btn-primary">التقاط الصورة</button>}
                 {isCameraOpen && <button type="button" onClick={closeCamera} className="btn-outline">إغلاق الكاميرا</button>}
               </div>

@@ -27,7 +27,7 @@
     ],
     "asar": false,
     "win": {
-      "target": "nsis",
+      "target": "squirrel",
       "forceCodeSigning": false
     },
     "nsis": {
