@@ -1,2 +1,6 @@
-- [x] Change textarea style in DoctorPage.jsx to textAlign: 'left' for LTR writing
-- [x] Update print function CSS to align prescription text to the left
+- [x] Remove import of UserListPage from App.jsx
+- [x] Remove the NavLink for user list from header in App.jsx
+- [x] Remove the Route for "/users" in App.jsx
+- [x] Delete src/UserListPage.jsx
+- [x] Add PDF export functionality for patient table in DoctorPage.jsx
+- [x] Remove secretary registration button and form from DoctorPage.jsx

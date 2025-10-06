@@ -6,21 +6,19 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 export default function DoctorPage() {
-  const { state, removePatient, addPatient, updatePatient, setStatus } = useClinic();
-  const { addSecretary, user, users } = useContext(ClinicContext);
+  const { state, removePatient, addPatient, updatePatient, setStatus, updateUser } = useClinic();
+  const { user } = useContext(ClinicContext);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [prescription, setPrescription] = useState("");
+  const [showDoctorForm, setShowDoctorForm] = useState(false);
+  const [doctorForm, setDoctorForm] = useState({
+    name: "",
+    specialization: "",
+    title: "",
+    phone: ""
+  });
 
-  // New states for secretary credentials and form toggle
-  const [secretaryName, setSecretaryName] = useState("");
-  const [secretaryCode, setSecretaryCode] = useState("");
-  // Removed secretaryPhone as per new requirement
-  const [secretaryMessage, setSecretaryMessage] = useState("");
-  const [showSecretaryForm, setShowSecretaryForm] = useState(false);
-  // Removed verificationCode, enteredCode, codeSent as no email verification needed now
 
-  // New state to hold last added secretary credentials for display
-  const [lastAddedSecretary, setLastAddedSecretary] = useState(null);
 
   // States for patient form
   const [showForm, setShowForm] = useState(false);
@@ -58,6 +56,7 @@ export default function DoctorPage() {
   const asthmaRef = useRef(null);
   const allergiesRef = useRef(null);
   const otherRef = useRef(null);
+  const tableRef = useRef(null);
 
   const patients = state.patients.sort((a, b) => b.createdAt - a.createdAt);
 
@@ -85,55 +84,101 @@ export default function DoctorPage() {
   }
 
   async function handleSavePDF() {
-    const doc = new jsPDF('p', 'mm', 'a4');
+    const container = document.createElement('div');
+    container.style.width = '210mm';
+    container.style.padding = '20px';
+    container.style.fontFamily = 'Arial, sans-serif';
+    container.style.direction = 'rtl';
+    container.style.backgroundColor = '#fff';
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
 
-    for (let i = 0; i < patients.length; i++) {
-      const patient = patients[i];
+    // Title
+    const title = document.createElement('h2');
+    title.textContent = 'الوصفات الطبية';
+    title.style.textAlign = 'center';
+    title.style.marginBottom = '20px';
+    title.style.color = '#2a5d9f';
+    container.appendChild(title);
 
-      // Create HTML for this patient
-      const detailsDiv = document.createElement('div');
-      detailsDiv.style.position = 'absolute';
-      detailsDiv.style.left = '-9999px';
-      detailsDiv.style.top = '-9999px';
-      detailsDiv.style.width = '210mm'; // A4 width
-      detailsDiv.style.height = '297mm'; // A4 height
-      detailsDiv.style.fontFamily = 'Arial, sans-serif';
-      detailsDiv.style.fontSize = '16px';
-      detailsDiv.style.padding = '40px 10px 10px 5px';
-      detailsDiv.style.backgroundColor = '#f8fafc';
-      detailsDiv.style.color = '#000';
-      detailsDiv.style.direction = 'rtl';
+    // Prescriptions
+    patients.forEach((patient) => {
+      if (patient.prescription) {
+        const patientDiv = document.createElement('div');
+        patientDiv.style.marginBottom = '20px';
+        patientDiv.style.border = '1px solid #ddd';
+        patientDiv.style.padding = '10px';
+        patientDiv.style.borderRadius = '8px';
+        patientDiv.style.backgroundColor = '#f9f9f9';
 
-      let htmlContent = `<h1 style="text-align: center; color: #2a5d9f; margin-bottom: 20px;">بيانات المريض ${i + 1}: ${patient.firstName} ${patient.lastName}</h1>`;
-      htmlContent += `
-        <div style="background-color: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px; background-color: #e3f2fd; padding: 15px; border-radius: 5px;">
-            <p style="margin: 2px 0; color: #1565c0;"><strong>الاسم:</strong> ${patient.firstName} ${patient.lastName}</p>
-            <p style="margin: 2px 0; color: #1565c0; display: flex; justify-content: space-between;"><span><strong>العمر:</strong> ${patient.age}</span><span><strong>التاريخ:</strong> ${patient.visitDate}</span></p>
-            <p style="margin: 2px 0; color: #1565c0;"><strong>الهاتف:</strong> ${patient.phone}</p>
-            <p style="margin: 2px 0; color: #1565c0;"><strong>الجنس:</strong> ${patient.gender}</p>
-          </div>
-          <p style="margin: 5px 0;"><strong>العنوان:</strong> ${patient.address || 'غير محدد'}</p>
-          <p style="margin: 5px 0;"><strong>الوصفة الطبية:</strong> ${patient.prescription || 'غير محدد'}</p>
-        </div>
-      `;
+        const nameP = document.createElement('p');
+        nameP.textContent = `المريض: ${patient.firstName} ${patient.lastName}`;
+        nameP.style.fontSize = '16px';
+        nameP.style.fontWeight = 'bold';
+        nameP.style.marginBottom = '5px';
+        patientDiv.appendChild(nameP);
 
-      detailsDiv.innerHTML = htmlContent;
-      document.body.appendChild(detailsDiv);
+        const detailsP = document.createElement('p');
+        detailsP.style.fontSize = '14px';
+        detailsP.style.color = '#555';
+        detailsP.style.marginBottom = '10px';
+        detailsP.style.display = 'flex';
+        detailsP.style.justifyContent = 'space-between';
 
-      const canvas = await html2canvas(detailsDiv, { scale: 2, width: 794, height: 1123 }); // A4 at 96 DPI * 2
-      document.body.removeChild(detailsDiv);
+        const ageSpan = document.createElement('span');
+        ageSpan.textContent = `العمر: ${patient.age}`;
+        detailsP.appendChild(ageSpan);
 
-      const imgData = canvas.toDataURL('image/png');
+        const phoneSpan = document.createElement('span');
+        phoneSpan.textContent = `الهاتف: ${patient.phone}`;
+        detailsP.appendChild(phoneSpan);
 
-      if (i > 0) {
-        doc.addPage();
+        const dateSpan = document.createElement('span');
+        dateSpan.textContent = `التاريخ: ${patient.visitDate}`;
+        detailsP.appendChild(dateSpan);
+
+        patientDiv.appendChild(detailsP);
+
+        const prescriptionP = document.createElement('p');
+        prescriptionP.textContent = patient.prescription;
+        prescriptionP.style.fontSize = '14px';
+        prescriptionP.style.whiteSpace = 'pre-wrap';
+        prescriptionP.style.textAlign = 'left';
+        prescriptionP.style.direction = 'ltr';
+        prescriptionP.style.border = '1px solid #eee';
+        prescriptionP.style.padding = '8px';
+        prescriptionP.style.backgroundColor = '#fff';
+        prescriptionP.style.borderRadius = '4px';
+        patientDiv.appendChild(prescriptionP);
+
+        container.appendChild(patientDiv);
       }
+    });
 
-      doc.addImage(imgData, 'PNG', 0, 0, 210, 297); // A4 size
+    document.body.appendChild(container);
+
+    const canvas = await html2canvas(container, { scale: 2 });
+    document.body.removeChild(container);
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgWidth = 210;
+    const pageHeight = 297;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft >= 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
     }
 
-    doc.save("patients_data.pdf");
+    pdf.save('prescriptions.pdf');
   }
 
   function handlePrintPrescription() {
@@ -184,6 +229,11 @@ export default function DoctorPage() {
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     printWindow.print();
+    // After printing, save and finish
+    updatePatient(selectedPatient.id, { prescription, prescriptionDate: new Date().toISOString() });
+    setStatus(selectedPatient.id, "done");
+    setSelectedPatient(null);
+    setPrescription("");
   }
 
   function handleSelect(patient) {
@@ -209,34 +259,9 @@ export default function DoctorPage() {
     }
   }
 
-  function saveAndFinish() {
-    if (!selectedPatient) return;
-    updatePatient(selectedPatient.id, { prescription });
-    setStatus(selectedPatient.id, "done");
-    setSelectedPatient(null);
-    setPrescription("");
-  }
 
-  // Handler for adding secretary
-  function handleAddSecretary(e) {
-    e.preventDefault();
-    if (!secretaryName || !secretaryCode) {
-      setSecretaryMessage("يرجى إدخال الاسم والرمز للسكرتير.");
-      return;
-    }
-    // Check if secretary name already exists (used as email)
-    const existingSecretary = users?.find(u => u.email === secretaryName && u.role === "secretary");
-    if (existingSecretary) {
-      setSecretaryMessage("الاسم موجود بالفعل.");
-      return;
-    }
-    addSecretary(secretaryName, secretaryName, user.email, secretaryCode);
-    setSecretaryMessage("تم إضافة السكرتير بنجاح.");
-    setLastAddedSecretary({ name: secretaryName, code: secretaryCode }); // Save for display
-    setSecretaryName("");
-    setSecretaryCode("");
-    setShowSecretaryForm(false);
-  }
+
+
 
   function handleDelete(patient) {
     if(window.confirm(`هل أنت متأكد من حذف المراجع ${patient.firstName}؟`)) {
@@ -310,6 +335,12 @@ export default function DoctorPage() {
     setShowForm(false);
   }
 
+  function handleDoctorSubmit(e) {
+    e.preventDefault();
+    updateUser(doctorForm);
+    setShowDoctorForm(false);
+  }
+
   async function openCamera() {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -349,10 +380,16 @@ export default function DoctorPage() {
   return (
     <div className="page">
       <h2>🏥 صفحة الطبيب</h2>
+      <div style={{ textAlign: 'center', marginBottom: '10px', fontWeight: 'bold' }}>
+        التاريخ والوقت: {new Date().toLocaleString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+      </div>
 
       <div style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
         <button className="btn-primary" onClick={() => { setShowForm(true); setEditingPatient(null); }}>
           إضافة مريض جديد
+        </button>
+        <button className="btn-secondary" onClick={() => { setShowDoctorForm(true); setDoctorForm({ name: user?.name || '', specialization: user?.specialization || '', title: user?.title || '', phone: user?.phone || '' }); }}>
+          تحديث معلومات الطبيب
         </button>
       </div>
 
@@ -608,16 +645,66 @@ export default function DoctorPage() {
         </div>
       )}
 
+      {showDoctorForm && (
+        <div className="card" style={{ marginBottom: '20px' }}>
+          <h3>تحديث معلومات الطبيب</h3>
+          <form onSubmit={handleDoctorSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <label>
+                الاسم
+                <input
+                  type="text"
+                  value={doctorForm.name}
+                  onChange={e => setDoctorForm({ ...doctorForm, name: e.target.value })}
+                  className="input"
+                  required
+                />
+              </label>
+              <label>
+                التخصص
+                <input
+                  type="text"
+                  value={doctorForm.specialization}
+                  onChange={e => setDoctorForm({ ...doctorForm, specialization: e.target.value })}
+                  className="input"
+                />
+              </label>
+              <label>
+                العنوان
+                <input
+                  type="text"
+                  value={doctorForm.title}
+                  onChange={e => setDoctorForm({ ...doctorForm, title: e.target.value })}
+                  className="input"
+                />
+              </label>
+              <label>
+                الهاتف
+                <input
+                  type="tel"
+                  value={doctorForm.phone}
+                  onChange={e => setDoctorForm({ ...doctorForm, phone: e.target.value.replace(/[^0-9]/g, '') })}
+                  className="input"
+                />
+              </label>
+            </div>
+            <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+              <button type="submit" className="btn-primary">حفظ</button>
+              <button type="button" className="btn-outline" onClick={() => setShowDoctorForm(false)}>إلغاء</button>
+            </div>
+          </form>
+        </div>
+      )}
+
       <div style={{display:'flex',gap:'16px',flexWrap:'wrap'}}>
         <div className="card" style={{flex:'1 1 500px'}}>
           <h3>قائمة المراجعين </h3>
-          <PatientTable patients={patients} onEdit={handleEdit} onDelete={handleDelete} onRowClick={handleSelect} />
+          <div ref={tableRef}>
+            <PatientTable patients={patients} onEdit={handleEdit} onDelete={handleDelete} onRowClick={handleSelect} />
+          </div>
 
           <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
             <button onClick={handleSavePDF} className="btn-primary">حفظ البيانات</button>
-            <button className="btn-primary" onClick={() => setShowSecretaryForm(!showSecretaryForm)}>
-              {showSecretaryForm ? 'إخفاء تسجيل السكرتير' : 'تسجيل سكرتير جديد'}
-            </button>
           </div>
         </div>
 
@@ -650,13 +737,7 @@ export default function DoctorPage() {
                   {selectedPatient.medicalHistory?.allergies && <li>الحساسية</li>}
                   {selectedPatient.medicalHistory?.other && <li>أخرى: {selectedPatient.medicalHistory.other}</li>}
                 </ul>
-                <h4>الأعراض الحالية:</h4>
-                <ul>
-                  {selectedPatient.currentSymptoms?.headache && <li>صداع</li>}
-                  {selectedPatient.currentSymptoms?.fever && <li>حمى</li>}
-                  {selectedPatient.currentSymptoms?.cough && <li>سعال</li>}
-                  {selectedPatient.currentSymptoms?.fatigue && <li>إرهاق</li>}
-                </ul>
+
                 {selectedPatient.cameraImages && selectedPatient.cameraImages.length > 0 && (
                   <div>
                     <h4>الصور :</h4>
@@ -699,47 +780,10 @@ export default function DoctorPage() {
           <>
             {/* Toggle button for secretary form */}
             <div style={{flexBasis: '100%', marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px'}}>
-              <button type="button" className="btn-primary" onClick={saveAndFinish}>حفظ وإنهاء</button>
               <button type="button" className="btn-outline" onClick={handlePrintPrescription}>طباعة الوصفة</button>
             </div>
 
-            {/* Secretary registration form */}
-            {showSecretaryForm && (
-              <div className="card" style={{flex:'1 1 300px'}}>
-                <h3>إضافة سكرتير</h3>
-                <form onSubmit={handleAddSecretary}>
-                  <label>
-                    الاسم:
-                    <input
-                      type="text"
-                      value={secretaryName}
-                      onChange={e => setSecretaryName(e.target.value)}
-                      className="input"
-                      required
-                    />
-                  </label>
-                  <label>
-                    الرمز:
-                    <input
-                      type="password"
-                      value={secretaryCode}
-                      onChange={e => setSecretaryCode(e.target.value)}
-                      className="input"
-                      required
-                    />
-                  </label>
-                  <button type="submit" className="btn-primary">إضافة السكرتير</button>
-                </form>
-                {secretaryMessage && <p>{secretaryMessage}</p>}
-                {lastAddedSecretary && (
-                  <div style={{ marginTop: '10px', backgroundColor: '#e0ffe0', padding: '10px', borderRadius: '5px' }}>
-                    <strong>السكرتير المضاف:</strong>
-                    <p>الاسم: {lastAddedSecretary.name}</p>
-                    <p>الرمز: {lastAddedSecretary.code}</p>
-                  </div>
-                )}
-              </div>
-            )}
+
           </>
         )}
       </div>

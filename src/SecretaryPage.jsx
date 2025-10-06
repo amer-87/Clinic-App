@@ -235,9 +235,6 @@ export default function SecretaryPage() {
         <button className="btn-primary" onClick={() => { setShowForm(true); setEditingPatient(null); }}>
           إضافة مريض جديد
         </button>
-        <button className="btn-danger" onClick={handleClearAll}>
-          مسح الكل
-        </button>
       </div>
 
       {showForm && (
@@ -497,6 +494,9 @@ export default function SecretaryPage() {
       <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
         <button className="btn-secondary" onClick={handleSavePDF}>
           حفظ البيانات
+        </button>
+        <button className="btn-danger" onClick={handleClearAll}>
+          مسح الكل
         </button>
       </div>
     </div>

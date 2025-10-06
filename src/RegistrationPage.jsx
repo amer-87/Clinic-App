@@ -85,9 +85,9 @@ export default function RegistrationPage() {
       });
 
 
-      // Redirect to login after 3 seconds
+      // Redirect to home after 3 seconds
       setTimeout(() => {
-        navigate('/login');
+        navigate('/');
       }, 3000);
 
     } catch (err) {
@@ -205,12 +205,12 @@ export default function RegistrationPage() {
           </button>
 
           <div style={{ textAlign: 'center', marginTop: '16px' }}>
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn-secondary"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/')}
             >
-              العودة إلى تسجيل الدخول
+              العودة إلى الصفحة الرئيسية
             </button>
           </div>
         </form>

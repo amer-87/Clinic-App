@@ -118,6 +118,17 @@ function usersReducer(state, action) {
         )
       };
     }
+    case "UPDATE_USER": {
+      const { email, changes } = action.payload;
+      return {
+        ...state,
+        users: state.users.map(u =>
+          u.email === email
+            ? { ...u, ...changes }
+            : u
+        )
+      };
+    }
     default:
       return state;
   }
@@ -158,6 +169,17 @@ export function ClinicProvider({ children }) {
     }
   }, [usersState.users]);
 
+  // Auto-login as owner if no user is set
+  useEffect(() => {
+    if (!userState.user && usersState.users.length > 0) {
+      const owner = usersState.users.find(user => user.role === 'owner');
+      if (owner) {
+        userDispatch({ type: "SET_USER", payload: owner });
+        console.log("Auto-logged in as owner");
+      }
+    }
+  }, [userState.user, usersState.users]);
+
   const api = useMemo(() => ({
     // Patient management
     addPatient: (patient) => dispatch({ type:"ADD_PATIENT", payload:patient }),
@@ -195,6 +217,11 @@ export function ClinicProvider({ children }) {
     rejectUser: (email, rejectedBy) => usersDispatch({ type: "REJECT_USER", payload: { email, rejectedBy } }),
     setPassword: (email, password) => usersDispatch({ type: "SET_PASSWORD", payload: { email, password } }),
     updateOwner: (newEmail, newPassword) => usersDispatch({ type: "UPDATE_OWNER", payload: { newEmail, newPassword } }),
+    updateUser: (changes) => {
+      usersDispatch({ type: "UPDATE_USER", payload: { email: userState.user.email, changes } });
+      const updatedUser = { ...userState.user, ...changes };
+      userDispatch({ type: "SET_USER", payload: updatedUser });
+    },
     addSecretary: (name, email, doctorEmail, password) => usersDispatch({ type: "ADD_SECRETARY", payload: { name, email, doctorEmail, password } }),
     getPendingUsers: (role) => usersState.users.filter(u => u.status === 'pending' && u.role === role)
   }), [userState.user, usersState.users]);
