@@ -62,17 +62,6 @@ function usersReducer(state, action) {
       console.log("New users state:", newState.users);
       return newState;
     }
-    case "APPROVE_USER": {
-      const { email, approvedBy, tempPassword } = action.payload;
-      return {
-        ...state,
-        users: state.users.map(u =>
-          u.email === email
-            ? { ...u, status: 'approved', approvedBy, password: tempPassword }
-            : u
-        )
-      };
-    }
     case "SET_PASSWORD": {
       const { email, password } = action.payload;
       return {
@@ -95,17 +84,6 @@ function usersReducer(state, action) {
         password
       };
       return { ...state, users: [...state.users, newSecretary] };
-    }
-    case "REJECT_USER": {
-      const { email, rejectedBy } = action.payload;
-      return {
-        ...state,
-        users: state.users.map(u =>
-          u.email === email
-            ? { ...u, status: 'rejected', rejectedBy }
-            : u
-        )
-      };
     }
     case "UPDATE_OWNER": {
       const { newEmail, newPassword } = action.payload;
@@ -213,8 +191,6 @@ export function ClinicProvider({ children }) {
     // User management
     users: usersState.users,
     addUser: (user) => usersDispatch({ type: "ADD_USER", payload: user }),
-    approveUser: (email, approvedBy, tempPassword) => usersDispatch({ type: "APPROVE_USER", payload: { email, approvedBy, tempPassword } }),
-    rejectUser: (email, rejectedBy) => usersDispatch({ type: "REJECT_USER", payload: { email, rejectedBy } }),
     setPassword: (email, password) => usersDispatch({ type: "SET_PASSWORD", payload: { email, password } }),
     updateOwner: (newEmail, newPassword) => usersDispatch({ type: "UPDATE_OWNER", payload: { newEmail, newPassword } }),
     updateUser: (changes) => {
@@ -222,8 +198,7 @@ export function ClinicProvider({ children }) {
       const updatedUser = { ...userState.user, ...changes };
       userDispatch({ type: "SET_USER", payload: updatedUser });
     },
-    addSecretary: (name, email, doctorEmail, password) => usersDispatch({ type: "ADD_SECRETARY", payload: { name, email, doctorEmail, password } }),
-    getPendingUsers: (role) => usersState.users.filter(u => u.status === 'pending' && u.role === role)
+    addSecretary: (name, email, doctorEmail, password) => usersDispatch({ type: "ADD_SECRETARY", payload: { name, email, doctorEmail, password } })
   }), [userState.user, usersState.users]);
 
   return <ClinicContext.Provider value={{state,...api}}>{children}</ClinicContext.Provider>;

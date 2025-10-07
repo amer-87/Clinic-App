@@ -1,7 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { ClinicContext } from "./context";
-import { sendRegistrationNotification } from "./helpers";
 import './style.css';
 
 
@@ -47,7 +46,7 @@ export default function RegistrationPage() {
 
 
     try {
-      // Create new doctor with pending status
+      // Create new doctor with approved status
       const newDoctor = {
         name: formData.name,
         email: formData.email,
@@ -57,22 +56,14 @@ export default function RegistrationPage() {
         title: formData.title,
         licenseNumber: formData.licenseNumber,
         role: "doctor",
-        status: "pending",
+        status: "approved",
         createdAt: new Date().toISOString()
       };
 
-
       addUser(newDoctor);
-      
-      // Send email notification to owner
-      try {
-        await sendRegistrationNotification(newDoctor);
-        setSuccess("تم إرسال طلب التسجيل بنجاح. سيتم مراجعته من قبل المالك وإرسال بريد إلكتروني لك عند الموافقة.");
-      } catch (emailError) {
-        console.error("Email notification failed:", emailError);
-        setSuccess("تم إرسال طلب التسجيل بنجاح. سيتم مراجعته من قبل المالك. (ملاحظة: لم يتم إرسال الإشعار بالبريد الإلكتروني)");
-      }
-      
+
+      setSuccess("تم تسجيل الطبيب بنجاح. يمكنه الآن تسجيل الدخول باستخدام البريد الإلكتروني وكلمة المرور المحددة.");
+
       // Clear form after successful submission
       setFormData({
         name: "",
@@ -83,7 +74,6 @@ export default function RegistrationPage() {
         title: "",
         licenseNumber: ""
       });
-
 
       // Redirect to home after 3 seconds
       setTimeout(() => {

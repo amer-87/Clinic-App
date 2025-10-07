@@ -161,9 +161,9 @@ export default function DoctorPage() {
     document.body.removeChild(container);
 
     const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdf = new jsPDF('l', 'mm', 'a5');
     const imgWidth = 210;
-    const pageHeight = 297;
+    const pageHeight = 148;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     let heightLeft = imgHeight;
     let position = 0;
@@ -189,15 +189,15 @@ export default function DoctorPage() {
         <head>
           <title>الوصفة الطبية</title>
           <style>
-            @page { size: A4; margin: 0; }
+            @page { size: 297mm 210mm; margin: 10mm; }
             body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; margin: 0; background-color: #f8fafc; }
-            .container { position: relative; height: 1000px; }
-            .card { background-color: #fff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 16px; width: 100%; max-width: 800px; margin: 0 auto; max-height: 950px; overflow: hidden; }
-            .details { background-color: #e3f2fd; padding: 10px; border-radius: 5px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-bottom: 16px; }
+            .container { position: relative; height: auto; }
+            .card { background-color: #fff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 16px; width: 100%; max-width: 800px; margin: 0 auto; }
+            .details { background-color: #e3f2fd; padding: 10px; border-radius: 5px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-bottom: 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .details p { margin: 5px 0; color: #1565c0; }
-            .prescription { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 12px; background-color: #fff; min-height: 600px; white-space: pre-wrap; margin-bottom: 16px; }
+            .prescription { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 12px; background-color: #fff; white-space: pre-wrap; margin-bottom: 16px; }
             .prescription p { margin: 0; font-size: 20px; line-height: 1.5; text-align: left; }
-            .footer { position: absolute; bottom: 0; left: 20px; right: 20px; display: flex; justify-content: space-between; border-top: 2px solid #2a5d9f; padding-top: 10px; }
+            .footer { background-color: #e3f2fd; padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; margin-top: 16px; color: #1565c0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           </style>
         </head>
         <body>
@@ -217,10 +217,10 @@ export default function DoctorPage() {
               <div class="prescription">
                 <p>${prescription || 'غير محدد'}</p>
               </div>
-            </div>
-            <div class="footer">
-              <p><strong>العنوان:</strong> ${user ? user.title || 'غير محدد' : 'غير محدد'}</p>
-              <p><strong>الهاتف:</strong> ${user ? user.phone || 'غير محدد' : 'غير محدد'}</p>
+              <div class="footer">
+                <p><strong>العنوان:</strong> ${user ? user.title || 'غير محدد' : 'غير محدد'}</p>
+                <p><strong>الهاتف:</strong> ${user ? user.phone || 'غير محدد' : 'غير محدد'}</p>
+              </div>
             </div>
           </div>
         </body>
