@@ -1,46 +1,44 @@
-# TODO: Remove Unused Code (Registration Email Approval)
+# خطة إضافة ميزة التحكم في ألوان الفورم
 
-## Information Gathered
-- The application has a doctor registration system with email-based approval process
-- RegistrationPage.jsx allows doctors to register with 'pending' status and sends email notification to owner
-- OwnerPage.jsx displays pending doctors and allows approval/rejection with email notifications
-- Context.jsx has reducers and functions for user approval/rejection
-- Helpers.js contains email sending functions and EMAIL_CONFIG
-- Multiple test files for email functionality exist in root directory
-- @emailjs/browser dependency is used for email sending
+## المهام:
 
-## Plan
-- [x] Modify RegistrationPage.jsx: Remove email notification, set status to 'approved' directly
-- [x] Update OwnerPage.jsx: Remove pending doctors UI, approval/rejection handlers, and URL parameter handling
-- [x] Update context.jsx: Remove APPROVE_USER, REJECT_USER actions and related functions (approveUser, rejectUser, getPendingUsers)
-- [x] Update helpers.js: Remove email functions (sendRegistrationNotification, sendApprovalNotification, sendRejectionNotification, sendEmail) and EMAIL_CONFIG
-- [ ] Remove /register route from App.jsx if registration is no longer needed (confirm with user)
-- [x] Remove @emailjs/browser from package.json dependencies
-- [x] Delete email test files:
-  - test-email.js
-  - test-email-send.js
-  - test-email-direct.js
-  - test-email-functionality.js
-  - test-template-config.js
-  - test-url-generation.js
-  - EMAIL_TEMPLATES_GUIDE.md
-  - EMAILJS_SETUP.md
-  - دليل_إعداد_EmailJS.md
-  - email-test.html
-  - test-email-direct.html
-  - test-email-functionality.html
-  - TODO_EMAIL_ISSUE.md
+### 1. تعديل DoctorPage.jsx
+- [x] فهم البنية الحالية للفورم
+- [x] إضافة حقول الألوان في doctorForm state
+- [x] إضافة حقول color picker في فورم تحديث معلومات الطبيب
+- [x] تطبيق الألوان المحفوظة على الفورم
+- [x] تحديث useEffect لتحميل الألوان من بيانات المستخدم
 
-## Dependent Files
-- src/RegistrationPage.jsx
-- src/OwnerPage.jsx
-- src/context.jsx
-- src/helpers.js
-- src/App.jsx
-- package.json
-- Root directory test files
+### 2. الاختبار
+- [ ] اختبار حفظ الألوان
+- [ ] اختبار تطبيق الألوان على الفورم
+- [ ] اختبار استمرار الألوان بعد إعادة التحميل
 
-## Followup Steps
-- [ ] Test the application to ensure registration works without email approval
-- [x] Run npm install to update dependencies after removing @emailjs/browser
-- [x] Verify no broken imports or references to removed functions
+## الحالة: مكتمل - جاهز للاختبار
+
+## التغييرات المنفذة:
+
+### src/DoctorPage.jsx
+✅ تم إضافة حقلين جديدين في `doctorForm` state:
+   - `formBackgroundColor`: لون خلفية الفورم (القيمة الافتراضية: #ffffff)
+   - `formBorderColor`: لون إطار الفورم (القيمة الافتراضية: #e5e7eb)
+
+✅ تم تحديث `useEffect` لتحميل الألوان المحفوظة من بيانات المستخدم
+
+✅ تم إضافة قسم "تخصيص ألوان الفورم" في فورم تحديث معلومات الطبيب يحتوي على:
+   - حقل color picker للون خلفية الفورم
+   - حقل نصي لإدخال كود اللون يدوياً
+   - حقل color picker للون إطار الفورم
+   - حقل نصي لإدخال كود اللون يدوياً
+   - معاينة مباشرة للألوان المختارة
+
+✅ تم تطبيق الألوان المحفوظة على فورم الوصفة الطبية (الكارد الذي يحتوي على معلومات المريض والوصفة)
+
+## كيفية الاستخدام:
+1. اضغط على زر "تحديث معلومات الطبيب"
+2. قم بالتمرير إلى قسم "تخصيص ألوان الفورم"
+3. اختر لون خلفية الفورم باستخدام color picker أو أدخل كود اللون
+4. اختر لون إطار الفورم باستخدام color picker أو أدخل كود اللون
+5. شاهد المعاينة المباشرة للألوان
+6. اضغط على "حفظ التغييرات"
+7. ستظهر الألوان الجديدة على فورم الوصفة الطبية مباشرة

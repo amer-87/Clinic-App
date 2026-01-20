@@ -73,18 +73,6 @@ function usersReducer(state, action) {
         )
       };
     }
-    case "ADD_SECRETARY": {
-      const { name, email, doctorEmail, password } = action.payload;
-      const newSecretary = {
-        name,
-        email,
-        role: "secretary",
-        status: "approved",
-        doctorEmail,
-        password
-      };
-      return { ...state, users: [...state.users, newSecretary] };
-    }
     case "UPDATE_OWNER": {
       const { newEmail, newPassword } = action.payload;
       return {
@@ -197,8 +185,7 @@ export function ClinicProvider({ children }) {
       usersDispatch({ type: "UPDATE_USER", payload: { email: userState.user.email, changes } });
       const updatedUser = { ...userState.user, ...changes };
       userDispatch({ type: "SET_USER", payload: updatedUser });
-    },
-    addSecretary: (name, email, doctorEmail, password) => usersDispatch({ type: "ADD_SECRETARY", payload: { name, email, doctorEmail, password } })
+    }
   }), [userState.user, usersState.users]);
 
   return <ClinicContext.Provider value={{state,...api}}>{children}</ClinicContext.Provider>;

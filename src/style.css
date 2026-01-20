@@ -313,6 +313,107 @@ footer {
   color: #64748b;
 }
 
+/* Doctor Page Header Styles */
+.doctor-page-header {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
+  border-radius: 20px;
+  padding: 30px 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.doctor-page-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.doctor-page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 15px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.doctor-page-title .icon {
+  font-size: 3rem;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.doctor-page-datetime {
+  font-size: 1.1rem;
+  color: #e0f2fe;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px 20px;
+  border-radius: 25px;
+  display: inline-block;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.doctor-page-datetime::before {
+  content: '📅';
+  margin-left: 8px;
+  font-size: 1.2rem;
+}
+
+/* Enhanced Button Styles for Doctor Page */
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
 /* Print Styles */
 @media print {
   .details,
@@ -322,5 +423,30 @@ footer {
   .waiting {
     -webkit-print-color-adjust: exact;
     color-adjust: exact;
+  }
+  
+  .doctor-page-header {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* Responsive Design for Header */
+@media (max-width: 768px) {
+  .doctor-page-title {
+    font-size: 1.8rem;
+  }
+  
+  .doctor-page-title .icon {
+    font-size: 2rem;
+  }
+  
+  .doctor-page-datetime {
+    font-size: 0.9rem;
+    padding: 8px 15px;
+  }
+  
+  .doctor-page-header {
+    padding: 20px 15px;
   }
 }

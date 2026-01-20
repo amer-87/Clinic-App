@@ -1,6 +1,5 @@
 import { HashRouter, Routes, Route, NavLink, Navigate } from "react-router-dom";
 import ReceptionPage from "./ReceptionPage";
-import SecretaryPage from "./SecretaryPage";
 import DoctorPage from "./DoctorPage";
 import OwnerPage from "./OwnerPage";
 import RegistrationPage from "./RegistrationPage";
@@ -20,7 +19,6 @@ function Layout({ children }) {
     <div>
       <header>
         <div className="container">
-          <NavLink to="/reception" className={({isActive})=>isActive?"active":""}>صفحة السكرتير</NavLink>
           <div>🩺  عيادة الطبيب</div>
           <div style={{ fontSize: '14px', color: '#fff' }}>
             {new Date().toLocaleString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -42,11 +40,6 @@ function AppContent() {
     <Routes>
       <Route path="/register" element={<RegistrationPage />} />
       <Route path="/" element={<Navigate to="/owner" replace />} />
-      <Route path="/reception" element={
-        <Layout>
-          <SecretaryPage />
-        </Layout>
-      } />
       <Route path="/doctor" element={
         <Layout>
           <DoctorPage />
