@@ -1,12 +1,52 @@
-# React + Vite
+# ClinicApp 🏥
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+نظام إدارة عيادة طبية متكامل مبني باستخدام React + Vite
 
-Currently, two official plugins are available:
+## المميزات ✨
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 📋 إدارة المرضى والمراجعين
+- 👨‍⚕️ صفحة خاصة للطبيب
+- 📝 كتابة وطباعة الوصفات الطبية
+- 📊 إحصائيات وتقارير
+- 🎨 واجهة مستخدم عصرية وسهلة الاستخدام
+- 💾 حفظ البيانات محلياً
+- 🖨️ طباعة الوصفات بتصميم احترافي
 
-## Expanding the ESLint configuration
+## التقنيات المستخدمة 🛠️
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React 18
+- Vite
+- jsPDF - لتوليد ملفات PDF
+- html2canvas - لتحويل HTML إلى صور
+- LocalStorage - لحفظ البيانات
+
+## التثبيت والتشغيل 🚀
+
+```bash
+# تثبيت المكتبات
+npm install
+
+# تشغيل المشروع في وضع التطوير
+npm run dev
+
+# بناء المشروع للإنتاج
+npm run build
+```
+
+## الاستخدام 📖
+
+1. **صفحة التسجيل**: تسجيل الدخول كطبيب أو موظف استقبال
+2. **صفحة الطبيب**: إدارة المرضى وكتابة الوصفات الطبية
+3. **صفحة الاستقبال**: إضافة مرضى جدد وإدارة المواعيد
+
+## المطور 👨‍💻
+
+تم تطوير هذا المشروع بواسطة: amer-87
+
+## الترخيص 📄
+
+MIT License
+
+---
+
+**آخر تحديث:** ${new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}
