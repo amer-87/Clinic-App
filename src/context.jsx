@@ -36,8 +36,7 @@ const initialUserState = {
 function userReducer(state, action) {
   switch(action.type) {
     case "SET_USER": {
-      const existingUser = state.user;
-      return { ...state, user: { ...action.payload, backgroundImage: existingUser?.backgroundImage || "" } };
+      return { ...state, user: action.payload };
     }
     case "LOGOUT":
       return { ...state, user: null };

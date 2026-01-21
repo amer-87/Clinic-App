@@ -1,0 +1,32 @@
+## Description
+This PR fixes an ESLint error in the `userReducer` function where a lexical declaration (`const existingUser`) was used inside a switch case without proper block scoping.
+
+## Changes Made
+- Wrapped the `SET_USER` case in braces `{}` to create a proper block scope
+- This resolves the ESLint rule violation: `no-case-declarations`
+
+## Error Fixed
+```
+src/context.jsx
+  39:7  error  Unexpected lexical declaration in case block  no-case-declarations
+```
+
+## Before
+```javascript
+case "SET_USER":
+  const existingUser = state.user;
+  return { ...state, user: { ...action.payload, backgroundImage: existingUser?.backgroundImage || "" } };
+```
+
+## After
+```javascript
+case "SET_USER": {
+  const existingUser = state.user;
+  return { ...state, user: { ...action.payload, backgroundImage: existingUser?.backgroundImage || "" } };
+}
+```
+
+## Impact
+- No functional changes to the code behavior
+- Improves code quality and follows ESLint best practices
+- Prevents potential variable scoping issues in the switch statement
