@@ -29,7 +29,10 @@ export default function DoctorPage() {
     detailsTextColor: "#1e40af",
     // تخصيص أحجام الخطوط
     doctorInfoFontSize: "16",
-    detailsFontSize: "14"
+    detailsFontSize: "14",
+    // صور الخلفية
+    doctorInfoBackgroundImage: "",
+    textareaBackgroundImage: ""
   });
 
   // Update doctorForm when user changes or when opening the form
@@ -53,7 +56,10 @@ export default function DoctorPage() {
         detailsTextColor: user.detailsTextColor || "#1e40af",
         // تخصيص أحجام الخطوط
         doctorInfoFontSize: user.doctorInfoFontSize || "16",
-        detailsFontSize: user.detailsFontSize || "14"
+        detailsFontSize: user.detailsFontSize || "14",
+        // صور الخلفية
+        doctorInfoBackgroundImage: user.doctorInfoBackgroundImage || "",
+        textareaBackgroundImage: user.textareaBackgroundImage || ""
       });
     }
   }, [showDoctorForm, user]);
@@ -78,12 +84,6 @@ export default function DoctorPage() {
       other: ""
     }
   });
-  const [file, setFile] = useState(null);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [capturedImages, setCapturedImages] = useState([]);
-  const [stream, setStream] = useState(null);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
   const prescriptionRef = useRef(null);
   const firstNameRef = useRef(null);
   const ageRef = useRef(null);
@@ -99,14 +99,6 @@ export default function DoctorPage() {
   const tableRef = useRef(null);
 
   const patients = state.patients.sort((a, b) => b.createdAt - a.createdAt);
-
-  useEffect(() => {
-    if (isCameraOpen && stream && videoRef.current) {
-      videoRef.current.srcObject = stream;
-      videoRef.current.load();
-      videoRef.current.play().catch(err => alert('فشل تشغيل الفيديو: ' + err.message));
-    }
-  }, [isCameraOpen, stream]);
 
   useEffect(() => {
     if (showForm && !editingPatient && firstNameRef.current) {
@@ -152,7 +144,7 @@ export default function DoctorPage() {
         patientDiv.style.backgroundColor = '#f9f9f9';
 
         const nameP = document.createElement('p');
-        nameP.textContent = `المريض: ${patient.firstName} ${patient.lastName}`;
+        nameP.textContent = `المراجع: ${patient.firstName} ${patient.lastName}`;
         nameP.style.fontSize = '16px';
         nameP.style.fontWeight = 'bold';
         nameP.style.marginBottom = '5px';
@@ -333,8 +325,6 @@ export default function DoctorPage() {
         other: patient.medicalHistory?.other || ""
       }
     });
-    setFile(patient.file || null);
-    setCapturedImages(patient.cameraImages || []);
     setShowForm(true);
   }
 
@@ -343,9 +333,7 @@ export default function DoctorPage() {
     if (editingPatient) {
       // Update existing patient
       updatePatient(editingPatient.id, {
-        ...form,
-        file: file,
-        cameraImages: capturedImages
+        ...form
       });
     } else {
       // Add new patient
@@ -354,9 +342,7 @@ export default function DoctorPage() {
         id: Date.now(),
         createdAt: Date.now(),
         visitDate: new Date().toISOString().slice(0, 10),
-        status: "waiting",
-        file: file,
-        cameraImages: capturedImages
+        status: "waiting"
       };
       addPatient(newPatient);
     }
@@ -376,8 +362,6 @@ export default function DoctorPage() {
         other: ""
       }
     });
-    setFile(null);
-    setCapturedImages([]);
     setEditingPatient(null);
     setShowForm(false);
   }
@@ -399,40 +383,33 @@ export default function DoctorPage() {
     }
   }
 
-  async function openCamera() {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
-      setStream(mediaStream);
-      setIsCameraOpen(true);
-    } catch (err) {
-      alert('لا يمكن الوصول إلى الكاميرا: ' + err.message);
+  function handleImageUpload(e, imageType) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (imageType === 'doctorInfo') {
+          updateUser({ doctorInfoBackgroundImage: reader.result });
+        } else if (imageType === 'textarea') {
+          updateUser({ textareaBackgroundImage: reader.result });
+        }
+      };
+      reader.readAsDataURL(file);
     }
   }
 
-  function capturePhoto() {
-    if (videoRef.current && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const video = videoRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
-      const dataURL = canvas.toDataURL('image/png');
-      setCapturedImages([...capturedImages, dataURL]);
-      closeCamera(); // Close camera after capture
+  function handleRemoveImage(imageType) {
+    const confirmMessage = imageType === 'doctorInfo' 
+      ? 'هل أنت متأكد من حذف صورة خلفية معلومات الطبيب؟'
+      : 'هل أنت متأكد من حذف صورة خلفية الوصفة الطبية؟';
+    
+    if (window.confirm(confirmMessage)) {
+      if (imageType === 'doctorInfo') {
+        updateUser({ doctorInfoBackgroundImage: "" });
+      } else if (imageType === 'textarea') {
+        updateUser({ textareaBackgroundImage: "" });
+      }
     }
-  }
-
-  function deleteImage(index) {
-    setCapturedImages(capturedImages.filter((_, i) => i !== index));
-  }
-
-  function closeCamera() {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
-    setIsCameraOpen(false);
   }
 
   return (
@@ -448,9 +425,9 @@ export default function DoctorPage() {
         </div>
       </div>
 
-      <div style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
+      <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button className="btn-primary" onClick={() => { setShowForm(true); setEditingPatient(null); }}>
-          إضافة مريض جديد
+          إضافة مراجع جديد
         </button>
         <button className="btn-secondary" onClick={() => { setShowDoctorForm(true); }}>
           تحديث معلومات الطبيب
@@ -459,7 +436,7 @@ export default function DoctorPage() {
 
       {showForm && (
         <div className="card" style={{ marginBottom: '20px' }}>
-          <h3>{editingPatient ? 'تعديل معلومات المريض' : 'إضافة مريض جديد'}</h3>
+          <h3>{editingPatient ? 'تعديل معلومات المراجع' : 'إضافة مراجع جديد'}</h3>
           <form onSubmit={handleFormSubmit} onKeyDown={e => { if(e.key === 'Enter') e.preventDefault(); }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <label>
@@ -668,40 +645,10 @@ export default function DoctorPage() {
               </label>
             </div>
 
-            <div style={{ marginTop: '16px' }}>
-              <label>صور من الكاميرا</label>
-              {isCameraOpen && <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', maxWidth: '300px', border: '1px solid #ccc' }} />}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
-                {capturedImages.map((img, index) => (
-                  <div key={index} style={{ position: 'relative' }}>
-                    <img src={img} alt={`الصورة ${index + 1}`} style={{ width: '100px', height: '100px', objectFit: 'cover', border: '1px solid #ccc' }} />
-                    <button type="button" onClick={() => deleteImage(index)} style={{ position: 'absolute', top: '0', right: '0', background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer' }}>×</button>
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-                {!isCameraOpen && <button type="button" onClick={openCamera} className="btn-secondary">فتح الكاميرا</button>}
-                {isCameraOpen && <button type="button" onClick={capturePhoto} className="btn-primary">التقاط الصورة</button>}
-                {isCameraOpen && <button type="button" onClick={closeCamera} className="btn-outline">إغلاق الكاميرا</button>}
-              </div>
-              <canvas ref={canvasRef} style={{ display: 'none' }} />
-            </div>
-
-            <div style={{ marginTop: '16px' }}>
-              <label>
-                تقرير/صورة المريض
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={e => setFile(e.target.files[0])}
-                  className="input"
-                />
-              </label>
-            </div>
 
             <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
               <button type="submit" className="btn-primary">
-                {editingPatient ? 'تحديث المريض' : 'إضافة المريض'}
+                {editingPatient ? 'تحديث المراجع' : 'إضافة المراجع'}
               </button>
               <button type="button" className="btn-outline" onClick={() => setShowForm(false)}>إلغاء</button>
             </div>
@@ -896,7 +843,7 @@ export default function DoctorPage() {
                   </div>
                 </label>
                 <label style={{ fontSize: '13px' }}>
-                  لون خلفية تفاصيل المريض
+                  لون خلفية تفاصيل المراجع
                   <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                     <input
                       type="color"
@@ -915,7 +862,7 @@ export default function DoctorPage() {
                   </div>
                 </label>
                 <label style={{ fontSize: '13px' }}>
-                  لون نص تفاصيل المريض
+                  لون نص تفاصيل المراجع
                   <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                     <input
                       type="color"
@@ -954,7 +901,7 @@ export default function DoctorPage() {
                   />
                 </label>
                 <label style={{ fontSize: '13px' }}>
-                  حجم خط تفاصيل المريض (10-20px)
+                  حجم خط تفاصيل المراجع (10-20px)
                   <input
                     type="number"
                     min="10"
@@ -969,6 +916,55 @@ export default function DoctorPage() {
                     style={{ fontSize: '12px', padding: '4px 6px' }}
                   />
                 </label>
+              </div>
+            </div>
+
+
+            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <h4 style={{ marginTop: '0', marginBottom: '8px', color: '#2a5d9f', fontSize: '15px' }}>إدارة الخلفيات</h4>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <label style={{ cursor: 'pointer' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, 'doctorInfo')}
+                    style={{ display: 'none' }}
+                  />
+                  <span className="btn-secondary" style={{ display: 'inline-block', fontSize: '13px', padding: '6px 12px' }}>
+                    📷 خلفية معلومات الطبيب
+                  </span>
+                </label>
+                {user?.doctorInfoBackgroundImage && (
+                  <button 
+                    type="button"
+                    className="btn-outline" 
+                    onClick={() => handleRemoveImage('doctorInfo')}
+                    style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', fontSize: '13px', padding: '6px 12px' }}
+                  >
+                    🗑️ حذف خلفية معلومات الطبيب
+                  </button>
+                )}
+                <label style={{ cursor: 'pointer' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, 'textarea')}
+                    style={{ display: 'none' }}
+                  />
+                  <span className="btn-secondary" style={{ display: 'inline-block', fontSize: '13px', padding: '6px 12px' }}>
+                    📝 خلفية الوصفة الطبية
+                  </span>
+                </label>
+                {user?.textareaBackgroundImage && (
+                  <button 
+                    type="button"
+                    className="btn-outline" 
+                    onClick={() => handleRemoveImage('textarea')}
+                    style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', fontSize: '13px', padding: '6px 12px' }}
+                  >
+                    🗑️ حذف خلفية الوصفة
+                  </button>
+                )}
               </div>
             </div>
 
@@ -993,8 +989,8 @@ export default function DoctorPage() {
           </div>
         </div>
 
-        <div 
-          className="card" 
+        <div
+          className="card"
           style={{
             flex:'1 1 500px',
             backgroundColor: user?.cardBackgroundColor || '#ffffff',
@@ -1004,22 +1000,28 @@ export default function DoctorPage() {
         >
           {/* Doctor Information Section */}
           {user && (
-            <div 
-              className="doctor-info" 
-              style={{
-                textAlign: 'center', 
-                marginBottom: '20px', 
-                borderBottom: `2px solid ${user.doctorInfoBorderColor || '#2a5d9f'}`, 
-                paddingBottom: '10px', 
-                backgroundColor: user.doctorInfoBackgroundColor || '#e3f2fd', 
-                borderRadius: '20px',
-                fontSize: `${user.doctorInfoFontSize || 16}px`
-              }}
-            >
-              <p><strong>الدكتور</strong></p>
-              <p>{user.name}</p>
-              <p><strong>التخصص:</strong> {user.specialization || 'غير محدد'}</p>
-            </div>
+            <>
+              <div 
+                className="doctor-info" 
+                style={{
+                  textAlign: 'center', 
+                  marginBottom: '20px', 
+                  borderBottom: `2px solid ${user.doctorInfoBorderColor || '#2a5d9f'}`, 
+                  paddingBottom: '10px', 
+                  backgroundColor: user.doctorInfoBackgroundColor || '#e3f2fd',
+                  backgroundImage: user?.doctorInfoBackgroundImage ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${user.doctorInfoBackgroundImage})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  borderRadius: '20px',
+                  fontSize: `${user.doctorInfoFontSize || 16}px`
+                }}
+              >
+                <p><strong>الدكتور</strong></p>
+                <p>{user.name}</p>
+                <p><strong>التخصص:</strong> {user.specialization || 'غير محدد'}</p>
+              </div>
+            </>
           )}
 
           <div style={{marginBottom:'16px'}}>
@@ -1028,6 +1030,10 @@ export default function DoctorPage() {
                 className="details" 
                 style={{
                   backgroundColor: user?.detailsBackgroundColor || '#e3f2fd', 
+                  backgroundImage: user?.backgroundImage ? `url(${user.backgroundImage})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
                   padding: '10px', 
                   borderRadius: '5px', 
                   display: 'grid', 
@@ -1053,31 +1059,29 @@ export default function DoctorPage() {
                   {selectedPatient.medicalHistory?.other && <li>أخرى: {selectedPatient.medicalHistory.other}</li>}
                 </ul>
 
-                {selectedPatient.cameraImages && selectedPatient.cameraImages.length > 0 && (
-                  <div>
-                    <h4>الصور :</h4>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                      {selectedPatient.cameraImages.map((img, index) => (
-                        <img key={index} src={img} alt={`صورة المريض ${index + 1}`} style={{ width: '150px', height: '150px', objectFit: 'cover', border: '1px solid #ccc' }} />
-                      ))}
-                    </div>
-                  </div>
-                )}
               </>
             )}
           </div>
 
           <form>
             <label>
-              <textarea
-                ref={prescriptionRef}
-                value={prescription}
-                onChange={e => setPrescription(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="input"
-                rows="15"
-                style={{ fontSize: '18px', textAlign: 'left', direction: 'ltr' }}
-              />
+                <textarea
+                  ref={prescriptionRef}
+                  value={prescription}
+                  onChange={e => setPrescription(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="input"
+                  rows="15"
+                  style={{ 
+                    fontSize: '18px', 
+                    textAlign: 'left', 
+                    direction: 'ltr',
+                    backgroundImage: user?.textareaBackgroundImage ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${user.textareaBackgroundImage})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                  }}
+                />
             </label>
           </form>
 

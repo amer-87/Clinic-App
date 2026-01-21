@@ -28,12 +28,16 @@ function clinicReducer(state, action) {
   }
 }
 
-const initialUserState = { user: null };
+const initialUserState = { 
+  user: null,
+  backgroundImage: ""
+ };
 
 function userReducer(state, action) {
   switch(action.type) {
-    case "SET_USER":
+    case "SET_USER": {
       return { ...state, user: action.payload };
+    }
     case "LOGOUT":
       return { ...state, user: null };
     default:
