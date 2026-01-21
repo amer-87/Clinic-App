@@ -30,8 +30,9 @@ export default function DoctorPage() {
     // تخصيص أحجام الخطوط
     doctorInfoFontSize: "16",
     detailsFontSize: "14",
-    // صورة الخلفية
-    backgroundImage: ""
+    // صور الخلفية
+    doctorInfoBackgroundImage: "",
+    textareaBackgroundImage: ""
   });
 
   // Update doctorForm when user changes or when opening the form
@@ -56,8 +57,9 @@ export default function DoctorPage() {
         // تخصيص أحجام الخطوط
         doctorInfoFontSize: user.doctorInfoFontSize || "16",
         detailsFontSize: user.detailsFontSize || "14",
-        // صورة الخلفية
-        backgroundImage: user.backgroundImage || ""
+        // صور الخلفية
+        doctorInfoBackgroundImage: user.doctorInfoBackgroundImage || "",
+        textareaBackgroundImage: user.textareaBackgroundImage || ""
       });
     }
   }, [showDoctorForm, user]);
@@ -381,20 +383,32 @@ export default function DoctorPage() {
     }
   }
 
-  function handleImageUpload(e) {
+  function handleImageUpload(e, imageType) {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        updateUser({ backgroundImage: reader.result });
+        if (imageType === 'doctorInfo') {
+          updateUser({ doctorInfoBackgroundImage: reader.result });
+        } else if (imageType === 'textarea') {
+          updateUser({ textareaBackgroundImage: reader.result });
+        }
       };
       reader.readAsDataURL(file);
     }
   }
 
-  function handleRemoveImage() {
-    if (window.confirm('هل أنت متأكد من حذف صورة الخلفية؟')) {
-      updateUser({ backgroundImage: "" });
+  function handleRemoveImage(imageType) {
+    const confirmMessage = imageType === 'doctorInfo' 
+      ? 'هل أنت متأكد من حذف صورة خلفية معلومات الطبيب؟'
+      : 'هل أنت متأكد من حذف صورة خلفية الوصفة الطبية؟';
+    
+    if (window.confirm(confirmMessage)) {
+      if (imageType === 'doctorInfo') {
+        updateUser({ doctorInfoBackgroundImage: "" });
+      } else if (imageType === 'textarea') {
+        updateUser({ textareaBackgroundImage: "" });
+      }
     }
   }
 
@@ -418,26 +432,6 @@ export default function DoctorPage() {
         <button className="btn-secondary" onClick={() => { setShowDoctorForm(true); }}>
           تحديث معلومات الطبيب
         </button>
-        <label style={{ cursor: 'pointer' }}>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            style={{ display: 'none' }}
-          />
-          <span className="btn-secondary" style={{ display: 'inline-block' }}>
-            📷 اختيار صورة خلفية
-          </span>
-        </label>
-        {user?.backgroundImage && (
-          <button 
-            className="btn-outline" 
-            onClick={handleRemoveImage}
-            style={{ backgroundColor: '#dc3545', color: 'white', border: 'none' }}
-          >
-            🗑️ حذف صورة الخلفية
-          </button>
-        )}
       </div>
 
       {showForm && (
@@ -926,6 +920,54 @@ export default function DoctorPage() {
             </div>
 
 
+            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <h4 style={{ marginTop: '0', marginBottom: '8px', color: '#2a5d9f', fontSize: '15px' }}>إدارة الخلفيات</h4>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <label style={{ cursor: 'pointer' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, 'doctorInfo')}
+                    style={{ display: 'none' }}
+                  />
+                  <span className="btn-secondary" style={{ display: 'inline-block', fontSize: '13px', padding: '6px 12px' }}>
+                    📷 خلفية معلومات الطبيب
+                  </span>
+                </label>
+                {user?.doctorInfoBackgroundImage && (
+                  <button 
+                    type="button"
+                    className="btn-outline" 
+                    onClick={() => handleRemoveImage('doctorInfo')}
+                    style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', fontSize: '13px', padding: '6px 12px' }}
+                  >
+                    🗑️ حذف خلفية معلومات الطبيب
+                  </button>
+                )}
+                <label style={{ cursor: 'pointer' }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, 'textarea')}
+                    style={{ display: 'none' }}
+                  />
+                  <span className="btn-secondary" style={{ display: 'inline-block', fontSize: '13px', padding: '6px 12px' }}>
+                    📝 خلفية الوصفة الطبية
+                  </span>
+                </label>
+                {user?.textareaBackgroundImage && (
+                  <button 
+                    type="button"
+                    className="btn-outline" 
+                    onClick={() => handleRemoveImage('textarea')}
+                    style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', fontSize: '13px', padding: '6px 12px' }}
+                  >
+                    🗑️ حذف خلفية الوصفة
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
               <button type="submit" className="btn-primary">حفظ التغييرات</button>
               <button type="button" className="btn-outline" onClick={() => setShowDoctorForm(false)}>إلغاء</button>
@@ -967,7 +1009,7 @@ export default function DoctorPage() {
                   borderBottom: `2px solid ${user.doctorInfoBorderColor || '#2a5d9f'}`, 
                   paddingBottom: '10px', 
                   backgroundColor: user.doctorInfoBackgroundColor || '#e3f2fd',
-                  backgroundImage: user?.backgroundImage ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${user.backgroundImage})` : 'none',
+                  backgroundImage: user?.doctorInfoBackgroundImage ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${user.doctorInfoBackgroundImage})` : 'none',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
@@ -1023,23 +1065,23 @@ export default function DoctorPage() {
 
           <form>
             <label>
-              <textarea
-                ref={prescriptionRef}
-                value={prescription}
-                onChange={e => setPrescription(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="input"
-                rows="15"
-                style={{ 
-                  fontSize: '18px', 
-                  textAlign: 'left', 
-                  direction: 'ltr',
-                  backgroundImage: user?.backgroundImage ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${user.backgroundImage})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat'
-                }}
-              />
+                <textarea
+                  ref={prescriptionRef}
+                  value={prescription}
+                  onChange={e => setPrescription(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="input"
+                  rows="15"
+                  style={{ 
+                    fontSize: '18px', 
+                    textAlign: 'left', 
+                    direction: 'ltr',
+                    backgroundImage: user?.textareaBackgroundImage ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${user.textareaBackgroundImage})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                  }}
+                />
             </label>
           </form>
 
