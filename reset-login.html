@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعادة تعيين بيانات تسجيل الدخول</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #2c5282;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .icon {
+            text-align: center;
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .description {
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .info-box {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info-box h3 {
+            color: #2c5282;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .credentials {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+        .credentials div {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #c53030;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 62, 62, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .success-btn {
+            background: #48bb78;
+        }
+        .success-btn:hover {
+            background: #38a169;
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .status.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 2px solid #48bb78;
+            display: block;
+        }
+        .status.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 2px solid #e53e3e;
+            display: block;
+        }
+        .warning {
+            background: #fef5e7;
+            border: 2px solid #f39c12;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #7d6608;
+        }
+        .step {
+            background: #e6fffa;
+            border-right: 4px solid #319795;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .step strong {
+            color: #234e52;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🔧</div>
+        <h1>إعادة تعيين بيانات تسجيل الدخول</h1>
+        <p class="description">
+            إذا كنت تواجه مشكلة في تسجيل الدخول، استخدم هذه الأداة لإعادة تعيين البيانات إلى الإعدادات الافتراضية.
+        </p>
+
+        <div class="warning">
+            ⚠️ <strong>تحذير:</strong> سيتم حذف جميع بيانات المستخدمين وإعادة تعيين كلمة المرور إلى الإعدادات الافتراضية.
+        </div>
+
+        <div class="info-box">
+            <h3>📋 البيانات الافتراضية بعد إعادة التعيين:</h3>
+            <div class="credentials">
+                <div>👤 اسم المستخدم: <strong>owner</strong></div>
+                <div>🔑 كلمة المرور: <strong>owner123</strong></div>
+            </div>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <button onclick="resetLoginData()">
+            🔄 إعادة تعيين البيانات الآن
+        </button>
+
+        <div class="info-box">
+            <h3>📝 الخطوات بعد إعادة التعيين:</h3>
+            <div class="step">
+                <strong>1.</strong> اضغط على زر "إعادة تعيين البيانات الآن" أعلاه
+            </div>
+            <div class="step">
+                <strong>2.</strong> انتظر رسالة النجاح
+            </div>
+            <div class="step">
+                <strong>3.</strong> اضغط على زر "فتح صفحة تسجيل الدخول"
+            </div>
+            <div class="step">
+                <strong>4.</strong> سجل دخول بالبيانات الافتراضية المذكورة أعلاه
+            </div>
+        </div>
+
+        <button id="openLoginBtn" class="success-btn" onclick="openLogin()" style="display: none;">
+            ✅ فتح صفحة تسجيل الدخول
+        </button>
+    </div>
+
+    <script>
+        function resetLoginData() {
+            try {
+                // حذف بيانات المستخدمين
+                localStorage.removeItem('clinic-users');
+                localStorage.removeItem('clinic-user');
+                
+                // إنشاء بيانات المالك الافتراضية
+                const defaultOwner = {
+                    users: [
+                        {
+                            name: "المالك",
+                            username: "owner",
+                            role: "owner",
+                            status: "approved",
+                            password: "owner123",
+                            createdAt: new Date().toISOString()
+                        }
+                    ]
+                };
+                
+                // حفظ البيانات الجديدة
+                localStorage.setItem('clinic-users', JSON.stringify(defaultOwner));
+                
+                // عرض رسالة النجاح
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = '✅ تم إعادة تعيين البيانات بنجاح!<br>يمكنك الآن فتح صفحة تسجيل الدخول.';
+                
+                // إظهار زر فتح صفحة تسجيل الدخول
+                document.getElementById('openLoginBtn').style.display = 'block';
+                
+                console.log('✅ تم إعادة التعيين بنجاح');
+                console.log('البيانات الجديدة:', defaultOwner);
+                
+            } catch (error) {
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '❌ حدث خطأ: ' + error.message;
+                console.error('خطأ:', error);
+            }
+        }
+
+        function openLogin() {
+            // فتح صفحة تسجيل الدخول
+            window.location.href = 'http://localhost:5174/';
+        }
+
+        // التحقق من البيانات الحالية عند تحميل الصفحة
+        window.onload = function() {
+            const currentUsers = localStorage.getItem('clinic-users');
+            if (currentUsers) {
+                console.log('البيانات الحالية:', JSON.parse(currentUsers));
+            } else {
+                console.log('لا توجد بيانات محفوظة');
+            }
+        };
+    </script>
+</body>
+</html>

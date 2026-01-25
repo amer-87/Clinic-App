@@ -49,7 +49,7 @@ const initialUsersState = {
   users: [
     {
       name: "المالك",
-      email: "aamerblack@gmail.com",
+      username: "owner",
       role: "owner",
       status: "approved",
       password: "owner123", // يمكن تغييرها لاحقاً
@@ -67,33 +67,33 @@ function usersReducer(state, action) {
       return newState;
     }
     case "SET_PASSWORD": {
-      const { email, password } = action.payload;
+      const { username, password } = action.payload;
       return {
         ...state,
         users: state.users.map(u =>
-          u.email === email
+          u.username === username
             ? { ...u, password }
             : u
         )
       };
     }
     case "UPDATE_OWNER": {
-      const { newEmail, newPassword } = action.payload;
+      const { newUsername, newPassword } = action.payload;
       return {
         ...state,
         users: state.users.map(u =>
           u.role === 'owner'
-            ? { ...u, email: newEmail, password: newPassword }
+            ? { ...u, username: newUsername, password: newPassword }
             : u
         )
       };
     }
     case "UPDATE_USER": {
-      const { email, changes } = action.payload;
+      const { username, changes } = action.payload;
       return {
         ...state,
         users: state.users.map(u =>
-          u.email === email
+          u.username === username
             ? { ...u, ...changes }
             : u
         )
@@ -122,13 +122,30 @@ export function ClinicProvider({ children }) {
     console.log("Users state updated:", usersState.users);
   }, [usersState.users]);
 
-  // Initialize owner account if not exists
+  // Initialize owner account if not exists and migrate old data
   useEffect(() => {
     const hasOwner = usersState.users.some(user => user.role === 'owner');
+    
+    // Check if we need to migrate old email-based data to username-based
+    const needsMigration = usersState.users.some(user => 
+      user.email && !user.username
+    );
+    
+    if (needsMigration) {
+      console.log("Migrating old user data from email to username...");
+      // Clear old data and reset with new structure
+      localStorage.removeItem('clinic-users');
+      localStorage.removeItem('clinic-user');
+      
+      // Force reload to reinitialize with correct data
+      window.location.reload();
+      return;
+    }
+    
     if (!hasOwner) {
       const ownerAccount = {
         name: "المالك",
-        email: "aamerblack@gmail.com",
+        username: "owner",
         role: "owner",
         status: "approved",
         password: "owner123",
@@ -139,16 +156,7 @@ export function ClinicProvider({ children }) {
     }
   }, [usersState.users]);
 
-  // Auto-login as owner if no user is set
-  useEffect(() => {
-    if (!userState.user && usersState.users.length > 0) {
-      const owner = usersState.users.find(user => user.role === 'owner');
-      if (owner) {
-        userDispatch({ type: "SET_USER", payload: owner });
-        console.log("Auto-logged in as owner");
-      }
-    }
-  }, [userState.user, usersState.users]);
+  // Auto-login removed for security - users must login manually
 
   const api = useMemo(() => ({
     // Patient management
@@ -161,14 +169,30 @@ export function ClinicProvider({ children }) {
     
     // User authentication
     login: (username, password) => {
-      console.log("Login attempt:", username, password);
-      console.log("Available users:", usersState.users);
+      // Trim whitespace from inputs
+      const trimmedUsername = username.trim();
+      const trimmedPassword = password.trim();
+      
+      console.log("Login attempt:", trimmedUsername);
+      console.log("Available users:", usersState.users.map(u => ({ 
+        username: u.username, 
+        email: u.email,
+        role: u.role, 
+        status: u.status 
+      })));
 
-      const user = usersState.users.find(
-        u => u.email.toLowerCase() === username.toLowerCase() && u.password.toLowerCase() === password.toLowerCase() && u.status === 'approved'
-      );
+      // Find user by username or email (for backward compatibility)
+      const user = usersState.users.find(u => {
+        const userIdentifier = u.username || u.email || '';
+        return userIdentifier.toLowerCase() === trimmedUsername.toLowerCase() && 
+               u.password === trimmedPassword && 
+               u.status === 'approved';
+      });
 
-      console.log("Found user:", user);
+      console.log("Found user:", user ? { 
+        username: user.username || user.email, 
+        role: user.role 
+      } : "No user found");
 
       if (user) {
         userDispatch({ type: "SET_USER", payload: user });
@@ -183,10 +207,10 @@ export function ClinicProvider({ children }) {
     // User management
     users: usersState.users,
     addUser: (user) => usersDispatch({ type: "ADD_USER", payload: user }),
-    setPassword: (email, password) => usersDispatch({ type: "SET_PASSWORD", payload: { email, password } }),
-    updateOwner: (newEmail, newPassword) => usersDispatch({ type: "UPDATE_OWNER", payload: { newEmail, newPassword } }),
+    setPassword: (username, password) => usersDispatch({ type: "SET_PASSWORD", payload: { username, password } }),
+    updateOwner: (newUsername, newPassword) => usersDispatch({ type: "UPDATE_OWNER", payload: { newUsername, newPassword } }),
     updateUser: (changes) => {
-      usersDispatch({ type: "UPDATE_USER", payload: { email: userState.user.email, changes } });
+      usersDispatch({ type: "UPDATE_USER", payload: { username: userState.user.username, changes } });
       const updatedUser = { ...userState.user, ...changes };
       userDispatch({ type: "SET_USER", payload: updatedUser });
     }

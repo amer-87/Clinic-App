@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Create Medical Icon</title>
+</head>
+<body>
+    <canvas id="canvas" width="256" height="256"></canvas>
+    <br>
+    <button onclick="downloadIcon()">Download Icon</button>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Background - Medical Blue
+        ctx.fillStyle = '#2196F3';
+        ctx.fillRect(0, 0, 256, 256);
+        
+        // White cross (medical symbol)
+        ctx.fillStyle = '#FFFFFF';
+        
+        // Vertical bar of cross
+        ctx.fillRect(96, 48, 64, 160);
+        
+        // Horizontal bar of cross
+        ctx.fillRect(48, 96, 160, 64);
+        
+        // Add a subtle shadow/3D effect
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(100, 52, 60, 156);
+        ctx.fillRect(52, 100, 156, 60);
+        
+        function downloadIcon() {
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'medical-icon.png';
+                a.click();
+            });
+        }
+    </script>
+</body>
+</html>

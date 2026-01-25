@@ -16,57 +16,59 @@ export default function DoctorPage() {
     specialization: "",
     title: "",
     phone: "",
-    // تخصيص ألوان الفورم (Card)
     cardBackgroundColor: "#ffffff",
     cardBorderColor: "#e5e7eb",
     cardShadowColor: "rgba(0,0,0,0.05)",
-    // تخصيص ألوان المحتوى
     formBackgroundColor: "#f0f9ff",
     formBorderColor: "#3b82f6",
     doctorInfoBackgroundColor: "#dbeafe",
     doctorInfoBorderColor: "#2563eb",
+    doctorInfoTextColor: "#1e40af",
     detailsBackgroundColor: "#dbeafe",
     detailsTextColor: "#1e40af",
-    // تخصيص أحجام الخطوط
+    prescriptionTextColor: "#000000",
     doctorInfoFontSize: "16",
     detailsFontSize: "14",
-    // صور الخلفية
     doctorInfoBackgroundImage: "",
-    textareaBackgroundImage: ""
+    textareaBackgroundImage: "",
+    detailsBackgroundImage: ""
   });
 
-  // Update doctorForm when user changes or when opening the form
+  // حالة للمعاينة المباشرة - تحتوي على الإعدادات المؤقتة
+  const [previewSettings, setPreviewSettings] = useState(null);
+  // حالة لحفظ القيم الأصلية قبل التعديل
+  const [originalSettings, setOriginalSettings] = useState(null);
+
   useEffect(() => {
     if (showDoctorForm && user) {
-      setDoctorForm({
+      const currentSettings = {
         name: user.name || "",
         specialization: user.specialization || "",
         title: user.title || "",
         phone: user.phone || "",
-        // تخصيص ألوان الفورم (Card)
         cardBackgroundColor: user.cardBackgroundColor || "#ffffff",
         cardBorderColor: user.cardBorderColor || "#e5e7eb",
         cardShadowColor: user.cardShadowColor || "rgba(0,0,0,0.05)",
-        // تخصيص ألوان المحتوى
         formBackgroundColor: user.formBackgroundColor || "#f0f9ff",
         formBorderColor: user.formBorderColor || "#3b82f6",
         doctorInfoBackgroundColor: user.doctorInfoBackgroundColor || "#dbeafe",
         doctorInfoBorderColor: user.doctorInfoBorderColor || "#2563eb",
+        doctorInfoTextColor: user.doctorInfoTextColor || "#1e40af",
         detailsBackgroundColor: user.detailsBackgroundColor || "#dbeafe",
         detailsTextColor: user.detailsTextColor || "#1e40af",
-        // تخصيص أحجام الخطوط
+        prescriptionTextColor: user.prescriptionTextColor || "#000000",
         doctorInfoFontSize: user.doctorInfoFontSize || "16",
         detailsFontSize: user.detailsFontSize || "14",
-        // صور الخلفية
         doctorInfoBackgroundImage: user.doctorInfoBackgroundImage || "",
-        textareaBackgroundImage: user.textareaBackgroundImage || ""
-      });
+        textareaBackgroundImage: user.textareaBackgroundImage || "",
+        detailsBackgroundImage: user.detailsBackgroundImage || ""
+      };
+      setDoctorForm(currentSettings);
+      setPreviewSettings(currentSettings);
+      setOriginalSettings(currentSettings);
     }
   }, [showDoctorForm, user]);
 
-
-
-  // States for patient form
   const [showForm, setShowForm] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
   const [form, setForm] = useState({
@@ -84,6 +86,7 @@ export default function DoctorPage() {
       other: ""
     }
   });
+  
   const prescriptionRef = useRef(null);
   const firstNameRef = useRef(null);
   const ageRef = useRef(null);
@@ -125,7 +128,6 @@ export default function DoctorPage() {
     container.style.position = 'absolute';
     container.style.left = '-9999px';
 
-    // Title
     const title = document.createElement('h2');
     title.textContent = 'الوصفات الطبية';
     title.style.textAlign = 'center';
@@ -133,7 +135,6 @@ export default function DoctorPage() {
     title.style.color = '#2a5d9f';
     container.appendChild(title);
 
-    // Prescriptions
     patients.forEach((patient) => {
       if (patient.prescription) {
         const patientDiv = document.createElement('div');
@@ -216,28 +217,141 @@ export default function DoctorPage() {
   function handlePrintPrescription() {
     if (!selectedPatient) return;
     const printWindow = window.open('', '_blank');
+    
+    const cardBgColor = user?.cardBackgroundColor || '#ffffff';
+    const cardBorderColor = user?.cardBorderColor || '#e5e7eb';
+    const cardShadowColor = user?.cardShadowColor || 'rgba(0,0,0,0.05)';
+    
+    const doctorInfoBgColor = user?.doctorInfoBackgroundColor || '#e3f2fd';
+    const doctorInfoBorderColor = user?.doctorInfoBorderColor || '#2a5d9f';
+    const doctorInfoTextColor = user?.doctorInfoTextColor || '#1e40af';
+    const doctorInfoBgImage = user?.doctorInfoBackgroundImage || '';
+    const doctorInfoFontSize = user?.doctorInfoFontSize || '16';
+    
+    const detailsBgColor = user?.detailsBackgroundColor || '#e3f2fd';
+    const detailsTextColor = user?.detailsTextColor || '#1565c0';
+    const detailsFontSize = user?.detailsFontSize || '14';
+    const detailsBgImage = user?.detailsBackgroundImage || '';
+    
+    const prescriptionTextColor = user?.prescriptionTextColor || '#000000';
+    const textareaBgImage = user?.textareaBackgroundImage || '';
+    
+    const doctorInfoBgStyle = doctorInfoBgImage 
+      ? `background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${doctorInfoBgImage}); background-size: cover; background-position: center; background-repeat: no-repeat;`
+      : '';
+    
+    const detailsBgStyle = detailsBgImage 
+      ? `background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${detailsBgImage}); background-size: cover; background-position: center; background-repeat: no-repeat;`
+      : '';
+    
+    const textareaBgStyle = textareaBgImage 
+      ? `background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${textareaBgImage}); background-size: cover; background-position: center; background-repeat: no-repeat;`
+      : '';
+    
     const htmlContent = `
       <html>
         <head>
           <title>الوصفة الطبية</title>
+          <meta charset="UTF-8">
           <style>
             @page { size: 297mm 210mm; margin: 10mm; }
-            body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; margin: 0; background-color: #f8fafc; }
+            body { 
+              font-family: Arial, sans-serif; 
+              direction: rtl; 
+              padding: 20px; 
+              margin: 0; 
+              background-color: #f8fafc; 
+              -webkit-print-color-adjust: exact; 
+              print-color-adjust: exact;
+            }
             .container { position: relative; height: auto; }
-            .card { background-color: #fff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 16px; width: 100%; max-width: 800px; margin: 0 auto; }
-            .details { background-color: #e3f2fd; padding: 10px; border-radius: 5px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-bottom: 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .details p { margin: 5px 0; color: #1565c0; }
-            .prescription { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 12px; background-color: #fff; white-space: pre-wrap; margin-bottom: 16px; }
-            .prescription p { margin: 0; font-size: 20px; line-height: 1.5; text-align: left; }
-            .footer { background-color: #e3f2fd; padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; margin-top: 16px; color: #1565c0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .card { 
+              background-color: ${cardBgColor}; 
+              border: 2px solid ${cardBorderColor};
+              border-radius: 16px; 
+              box-shadow: 0 4px 6px ${cardShadowColor}; 
+              padding: 16px; 
+              width: 100%; 
+              max-width: 800px; 
+              margin: 0 auto;
+              -webkit-print-color-adjust: exact; 
+              print-color-adjust: exact;
+            }
+            .doctor-info {
+              text-align: center; 
+              margin-bottom: 20px; 
+              border-bottom: 2px solid ${doctorInfoBorderColor}; 
+              padding-bottom: 10px;
+              background-color: ${doctorInfoBgColor};
+              ${doctorInfoBgStyle}
+              border-radius: 20px;
+              font-size: ${doctorInfoFontSize}px;
+              color: ${doctorInfoTextColor};
+              -webkit-print-color-adjust: exact; 
+              print-color-adjust: exact;
+            }
+            .doctor-info p {
+              margin: 5px 0;
+              color: ${doctorInfoTextColor};
+            }
+            .details { 
+              background-color: ${detailsBgColor}; 
+              ${detailsBgStyle}
+              padding: 10px; 
+              border-radius: 5px; 
+              display: grid; 
+              grid-template-columns: 1fr 1fr; 
+              gap: 1px; 
+              margin-bottom: 16px; 
+              font-size: ${detailsFontSize}px;
+              -webkit-print-color-adjust: exact; 
+              print-color-adjust: exact; 
+            }
+            .details p { 
+              margin: 5px 0; 
+              color: ${detailsTextColor}; 
+            }
+            .prescription { 
+              padding: 8px 12px; 
+              border: 1px solid #cbd5e1; 
+              border-radius: 12px; 
+              background-color: #fff; 
+              ${textareaBgStyle}
+              white-space: pre-wrap; 
+              margin-bottom: 16px;
+              -webkit-print-color-adjust: exact; 
+              print-color-adjust: exact;
+            }
+            .prescription p { 
+              margin: 0; 
+              font-size: 20px; 
+              line-height: 1.5; 
+              text-align: left; 
+              direction: ltr;
+              color: ${prescriptionTextColor};
+            }
+            .footer { 
+              background-color: ${detailsBgColor}; 
+              padding: 10px; 
+              border-radius: 5px; 
+              display: flex; 
+              justify-content: space-between; 
+              margin-top: 16px; 
+              color: ${detailsTextColor}; 
+              -webkit-print-color-adjust: exact; 
+              print-color-adjust: exact; 
+            }
+            .footer p {
+              margin: 5px 0;
+            }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="card">
-              <div class="doctor-info" style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #2a5d9f; padding-bottom: 10px  ; ">
+              <div class="doctor-info">
                 <p><strong>الدكتور</strong></p>
-                <p> ${user ? user.name : 'غير محدد'}</p>
+                <p>${user ? user.name : 'غير محدد'}</p>
                 <p><strong>التخصص:</strong> ${user ? user.specialization || 'غير محدد' : 'غير محدد'}</p>
               </div>
               <div class="details">
@@ -255,13 +369,26 @@ export default function DoctorPage() {
               </div>
             </div>
           </div>
+          <script>
+            // الانتظار حتى يتم تحميل المحتوى بالكامل قبل فتح نافذة الطباعة
+            window.onload = function() {
+              // تأخير قصير إضافي للتأكد من تحميل جميع الأنماط والصور
+              setTimeout(function() {
+                window.print();
+                // إغلاق النافذة بعد الطباعة أو الإلغاء
+                window.onafterprint = function() {
+                  window.close();
+                };
+              }, 500);
+            };
+          </script>
         </body>
       </html>
     `;
     printWindow.document.write(htmlContent);
     printWindow.document.close();
-    printWindow.print();
-    // After printing, save and finish
+    
+    // حفظ بيانات المراجع بعد فتح نافذة الطباعة
     updatePatient(selectedPatient.id, { prescription, prescriptionDate: new Date().toISOString() });
     setStatus(selectedPatient.id, "done");
     setSelectedPatient(null);
@@ -269,19 +396,13 @@ export default function DoctorPage() {
   }
 
   function handleSelect(patient) {
-    // Update the visit date to today's date
     const currentDate = new Date().toISOString().slice(0, 10);
     const updatedPatient = { ...patient, visitDate: currentDate };
-    
-    // Update the patient in the state with the new visit date
     updatePatient(patient.id, { visitDate: currentDate });
-    
     setSelectedPatient(updatedPatient);
     const pres = patient.prescription || "";
     setPrescription(formatPrescription(pres));
   }
-
-
 
   function handleKeyDown(e) {
     if (e.key === 'Enter') {
@@ -297,10 +418,6 @@ export default function DoctorPage() {
       }, 0);
     }
   }
-
-
-
-
 
   function handleDelete(patient) {
     if(window.confirm(`هل أنت متأكد من حذف المراجع ${patient.firstName}؟`)) {
@@ -331,12 +448,8 @@ export default function DoctorPage() {
   function handleFormSubmit(e) {
     e.preventDefault();
     if (editingPatient) {
-      // Update existing patient
-      updatePatient(editingPatient.id, {
-        ...form
-      });
+      updatePatient(editingPatient.id, { ...form });
     } else {
-      // Add new patient
       const newPatient = {
         ...form,
         id: Date.now(),
@@ -346,7 +459,6 @@ export default function DoctorPage() {
       };
       addPatient(newPatient);
     }
-    // Reset form
     setForm({
       firstName: "",
       lastName: "",
@@ -372,6 +484,26 @@ export default function DoctorPage() {
     updateUser(doctorForm);
     alert("تم تحديث معلومات الطبيب بنجاح!");
     setShowDoctorForm(false);
+    setPreviewSettings(null);
+    setOriginalSettings(null);
+  }
+
+  function handleCancelDoctorForm() {
+    // إرجاع القيم الأصلية
+    if (originalSettings) {
+      setDoctorForm(originalSettings);
+      setPreviewSettings(originalSettings);
+    }
+    setShowDoctorForm(false);
+    setPreviewSettings(null);
+    setOriginalSettings(null);
+  }
+
+  // دالة لتحديث المعاينة المباشرة
+  function handlePreviewChange(field, value) {
+    const updatedSettings = { ...doctorForm, [field]: value };
+    setDoctorForm(updatedSettings);
+    setPreviewSettings(updatedSettings);
   }
 
   function handleDeleteAll() {
@@ -389,9 +521,11 @@ export default function DoctorPage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         if (imageType === 'doctorInfo') {
-          updateUser({ doctorInfoBackgroundImage: reader.result });
+          handlePreviewChange('doctorInfoBackgroundImage', reader.result);
         } else if (imageType === 'textarea') {
-          updateUser({ textareaBackgroundImage: reader.result });
+          handlePreviewChange('textareaBackgroundImage', reader.result);
+        } else if (imageType === 'details') {
+          handlePreviewChange('detailsBackgroundImage', reader.result);
         }
       };
       reader.readAsDataURL(file);
@@ -399,22 +533,17 @@ export default function DoctorPage() {
   }
 
   function handleRemoveImage(imageType) {
-    const confirmMessage = imageType === 'doctorInfo' 
-      ? 'هل أنت متأكد من حذف صورة خلفية معلومات الطبيب؟'
-      : 'هل أنت متأكد من حذف صورة خلفية الوصفة الطبية؟';
-    
-    if (window.confirm(confirmMessage)) {
-      if (imageType === 'doctorInfo') {
-        updateUser({ doctorInfoBackgroundImage: "" });
-      } else if (imageType === 'textarea') {
-        updateUser({ textareaBackgroundImage: "" });
-      }
+    if (imageType === 'doctorInfo') {
+      handlePreviewChange('doctorInfoBackgroundImage', '');
+    } else if (imageType === 'textarea') {
+      handlePreviewChange('textareaBackgroundImage', '');
+    } else if (imageType === 'details') {
+      handlePreviewChange('detailsBackgroundImage', '');
     }
   }
 
   return (
     <div className="page">
-      {/* Enhanced Header Section */}
       <div className="doctor-page-header">
         <h2 className="doctor-page-title">
           <span className="icon">🏥</span>
@@ -424,6 +553,32 @@ export default function DoctorPage() {
           {new Date().toLocaleString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
+
+      {/* User Info Card */}
+      {user && (
+        <div style={{ marginBottom: '16px' }}>
+          <div className="card" style={{ 
+            border: '1px solid #3b82f6', 
+            borderRadius: '12px', 
+            padding: '12px', 
+            backgroundColor: '#eff6ff',
+            maxWidth: '600px',
+            margin: '0 auto'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ fontSize: '32px' }}>👨‍⚕️</div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ margin: '0 0 4px 0', color: '#1e40af', fontSize: '18px' }}>
+                  {user.name}
+                </h3>
+                <p style={{ margin: '0', fontSize: '14px', color: '#3b82f6' }}>
+                  {user.specialization || 'طبيب'} • {user.email}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button className="btn-primary" onClick={() => { setShowForm(true); setEditingPatient(null); }}>
@@ -645,7 +800,6 @@ export default function DoctorPage() {
               </label>
             </div>
 
-
             <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
               <button type="submit" className="btn-primary">
                 {editingPatient ? 'تحديث المراجع' : 'إضافة المراجع'}
@@ -660,232 +814,232 @@ export default function DoctorPage() {
         <div className="card" style={{ marginBottom: '20px' }}>
           <h3>تحديث معلومات الطبيب</h3>
           <form onSubmit={handleDoctorSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '12px' }}>
+              <label style={{ fontSize: '13px' }}>
                 الاسم
                 <input
                   type="text"
                   value={doctorForm.name}
-                  onChange={e => setDoctorForm({ ...doctorForm, name: e.target.value })}
+                  onChange={e => handlePreviewChange('name', e.target.value)}
                   className="input"
+                  style={{ fontSize: '12px', padding: '6px' }}
                   required
                 />
               </label>
-              <label>
+              <label style={{ fontSize: '13px' }}>
                 التخصص
                 <input
                   type="text"
                   value={doctorForm.specialization}
-                  onChange={e => setDoctorForm({ ...doctorForm, specialization: e.target.value })}
+                  onChange={e => handlePreviewChange('specialization', e.target.value)}
                   className="input"
+                  style={{ fontSize: '12px', padding: '6px' }}
                 />
               </label>
-              <label>
+              <label style={{ fontSize: '13px' }}>
                 العنوان
                 <input
                   type="text"
                   value={doctorForm.title}
-                  onChange={e => setDoctorForm({ ...doctorForm, title: e.target.value })}
+                  onChange={e => handlePreviewChange('title', e.target.value)}
                   className="input"
+                  style={{ fontSize: '12px', padding: '6px' }}
                 />
               </label>
-              <label>
+              <label style={{ fontSize: '13px' }}>
                 الهاتف
                 <input
                   type="tel"
                   value={doctorForm.phone}
-                  onChange={e => setDoctorForm({ ...doctorForm, phone: e.target.value.replace(/[^0-9]/g, '') })}
+                  onChange={e => handlePreviewChange('phone', e.target.value.replace(/[^0-9]/g, ''))}
                   className="input"
+                  style={{ fontSize: '12px', padding: '6px' }}
                 />
               </label>
             </div>
 
-            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-              <h4 style={{ marginTop: '0', marginBottom: '8px', color: '#2a5d9f', fontSize: '15px' }}>تخصيص ألوان الفورم (Card)</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                <label style={{ fontSize: '13px' }}>
-                  لون خلفية الفورم
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+              <h4 style={{ marginTop: '0', marginBottom: '6px', color: '#2a5d9f', fontSize: '13px' }}>ألوان الفورم</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                <label style={{ fontSize: '11px' }}>
+                  خلفية
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
                     <input
                       type="color"
                       value={doctorForm.cardBackgroundColor || "#ffffff"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, cardBackgroundColor: e.target.value }))}
-                      style={{ width: '35px', height: '28px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
+                      onChange={e => handlePreviewChange('cardBackgroundColor', e.target.value)}
+                      style={{ width: '24px', height: '24px', border: '1px solid #cbd5e1', borderRadius: '3px', cursor: 'pointer', padding: '1px' }}
                     />
                     <input
                       type="text"
                       value={doctorForm.cardBackgroundColor || "#ffffff"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, cardBackgroundColor: e.target.value }))}
+                      onChange={e => handlePreviewChange('cardBackgroundColor', e.target.value)}
                       className="input"
                       placeholder="#ffffff"
-                      style={{ flex: 1, fontSize: '12px', padding: '4px 6px' }}
+                      style={{ flex: 1, fontSize: '10px', padding: '2px 4px' }}
                     />
                   </div>
                 </label>
-                <label style={{ fontSize: '13px' }}>
-                  لون إطار الفورم
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <label style={{ fontSize: '11px' }}>
+                  إطار
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
                     <input
                       type="color"
                       value={doctorForm.cardBorderColor || "#e5e7eb"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, cardBorderColor: e.target.value }))}
-                      style={{ width: '35px', height: '28px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
+                      onChange={e => handlePreviewChange('cardBorderColor', e.target.value)}
+                      style={{ width: '24px', height: '24px', border: '1px solid #cbd5e1', borderRadius: '3px', cursor: 'pointer', padding: '1px' }}
                     />
                     <input
                       type="text"
                       value={doctorForm.cardBorderColor || "#e5e7eb"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, cardBorderColor: e.target.value }))}
+                      onChange={e => handlePreviewChange('cardBorderColor', e.target.value)}
                       className="input"
                       placeholder="#e5e7eb"
-                      style={{ flex: 1, fontSize: '12px', padding: '4px 6px' }}
+                      style={{ flex: 1, fontSize: '10px', padding: '2px 4px' }}
                     />
                   </div>
                 </label>
-                <label style={{ fontSize: '13px' }}>
-                  لون ظل الفورم
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <label style={{ fontSize: '11px' }}>
+                  ظل
+                  <input
+                    type="text"
+                    value={doctorForm.cardShadowColor || "rgba(0,0,0,0.05)"}
+                    onChange={e => handlePreviewChange('cardShadowColor', e.target.value)}
+                    className="input"
+                    placeholder="rgba(0,0,0,0.05)"
+                    style={{ fontSize: '10px', padding: '2px 4px' }}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+              <h4 style={{ marginTop: '0', marginBottom: '6px', color: '#2a5d9f', fontSize: '13px' }}>ألوان المحتوى</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                <label style={{ fontSize: '11px' }}>
+                  خلفية معلومات الطبيب
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
                     <input
                       type="color"
-                      value={doctorForm.cardShadowColor || "rgba(0,0,0,0.05)"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, cardShadowColor: e.target.value }))}
-                      style={{ width: '35px', height: '28px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
+                      value={doctorForm.doctorInfoBackgroundColor || "#dbeafe"}
+                      onChange={e => handlePreviewChange('doctorInfoBackgroundColor', e.target.value)}
+                      style={{ width: '24px', height: '24px', border: '1px solid #cbd5e1', borderRadius: '3px', cursor: 'pointer', padding: '1px' }}
                     />
                     <input
                       type="text"
-                      value={doctorForm.cardShadowColor || "rgba(0,0,0,0.05)"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, cardShadowColor: e.target.value }))}
+                      value={doctorForm.doctorInfoBackgroundColor || "#dbeafe"}
+                      onChange={e => handlePreviewChange('doctorInfoBackgroundColor', e.target.value)}
                       className="input"
-                      placeholder="rgba(0,0,0,0.05)"
-                      style={{ flex: 1, fontSize: '12px', padding: '4px 6px' }}
+                      placeholder="#dbeafe"
+                      style={{ flex: 1, fontSize: '10px', padding: '2px 4px' }}
+                    />
+                  </div>
+                </label>
+                <label style={{ fontSize: '11px' }}>
+                  إطار معلومات الطبيب
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      value={doctorForm.doctorInfoBorderColor || "#2563eb"}
+                      onChange={e => handlePreviewChange('doctorInfoBorderColor', e.target.value)}
+                      style={{ width: '24px', height: '24px', border: '1px solid #cbd5e1', borderRadius: '3px', cursor: 'pointer', padding: '1px' }}
+                    />
+                    <input
+                      type="text"
+                      value={doctorForm.doctorInfoBorderColor || "#2563eb"}
+                      onChange={e => handlePreviewChange('doctorInfoBorderColor', e.target.value)}
+                      className="input"
+                      placeholder="#2563eb"
+                      style={{ flex: 1, fontSize: '10px', padding: '2px 4px' }}
+                    />
+                  </div>
+                </label>
+                <label style={{ fontSize: '11px' }}>
+                  خلفية تفاصيل المراجع
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      value={doctorForm.detailsBackgroundColor || "#dbeafe"}
+                      onChange={e => handlePreviewChange('detailsBackgroundColor', e.target.value)}
+                      style={{ width: '24px', height: '24px', border: '1px solid #cbd5e1', borderRadius: '3px', cursor: 'pointer', padding: '1px' }}
+                    />
+                    <input
+                      type="text"
+                      value={doctorForm.detailsBackgroundColor || "#dbeafe"}
+                      onChange={e => handlePreviewChange('detailsBackgroundColor', e.target.value)}
+                      className="input"
+                      placeholder="#dbeafe"
+                      style={{ flex: 1, fontSize: '10px', padding: '2px 4px' }}
+                    />
+                  </div>
+                </label>
+                <label style={{ fontSize: '11px' }}>
+                  نص معلومات الطبيب
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      value={doctorForm.doctorInfoTextColor || "#1e40af"}
+                      onChange={e => handlePreviewChange('doctorInfoTextColor', e.target.value)}
+                      style={{ width: '24px', height: '24px', border: '1px solid #cbd5e1', borderRadius: '3px', cursor: 'pointer', padding: '1px' }}
+                    />
+                    <input
+                      type="text"
+                      value={doctorForm.doctorInfoTextColor || "#1e40af"}
+                      onChange={e => handlePreviewChange('doctorInfoTextColor', e.target.value)}
+                      className="input"
+                      placeholder="#1e40af"
+                      style={{ flex: 1, fontSize: '10px', padding: '2px 4px' }}
+                    />
+                  </div>
+                </label>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginTop: '6px' }}>
+                <label style={{ fontSize: '11px' }}>
+                  نص تفاصيل المراجع
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      value={doctorForm.detailsTextColor || "#1e40af"}
+                      onChange={e => handlePreviewChange('detailsTextColor', e.target.value)}
+                      style={{ width: '24px', height: '24px', border: '1px solid #cbd5e1', borderRadius: '3px', cursor: 'pointer', padding: '1px' }}
+                    />
+                    <input
+                      type="text"
+                      value={doctorForm.detailsTextColor || "#1e40af"}
+                      onChange={e => handlePreviewChange('detailsTextColor', e.target.value)}
+                      className="input"
+                      placeholder="#1e40af"
+                      style={{ flex: 1, fontSize: '10px', padding: '2px 4px' }}
+                    />
+                  </div>
+                </label>
+                <label style={{ fontSize: '11px' }}>
+                  نص الوصفة الطبية
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      value={doctorForm.prescriptionTextColor || "#000000"}
+                      onChange={e => handlePreviewChange('prescriptionTextColor', e.target.value)}
+                      style={{ width: '24px', height: '24px', border: '1px solid #cbd5e1', borderRadius: '3px', cursor: 'pointer', padding: '1px' }}
+                    />
+                    <input
+                      type="text"
+                      value={doctorForm.prescriptionTextColor || "#000000"}
+                      onChange={e => handlePreviewChange('prescriptionTextColor', e.target.value)}
+                      className="input"
+                      placeholder="#000000"
+                      style={{ flex: 1, fontSize: '10px', padding: '2px 4px' }}
                     />
                   </div>
                 </label>
               </div>
             </div>
 
-            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-              <h4 style={{ marginTop: '0', marginBottom: '8px', color: '#2a5d9f', fontSize: '15px' }}>تخصيص ألوان المحتوى</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                <label style={{ fontSize: '13px' }}>
-                  لون خلفية الفورم
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <input
-                      type="color"
-                      value={doctorForm.formBackgroundColor || "#f0f9ff"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, formBackgroundColor: e.target.value }))}
-                      style={{ width: '35px', height: '28px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
-                    />
-                    <input
-                      type="text"
-                      value={doctorForm.formBackgroundColor || "#f0f9ff"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, formBackgroundColor: e.target.value }))}
-                      className="input"
-                      placeholder="#f0f9ff"
-                      style={{ flex: 1, fontSize: '12px', padding: '4px 6px' }}
-                    />
-                  </div>
-                </label>
-                <label style={{ fontSize: '13px' }}>
-                  لون إطار الفورم
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <input
-                      type="color"
-                      value={doctorForm.formBorderColor || "#3b82f6"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, formBorderColor: e.target.value }))}
-                      style={{ width: '35px', height: '28px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
-                    />
-                    <input
-                      type="text"
-                      value={doctorForm.formBorderColor || "#3b82f6"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, formBorderColor: e.target.value }))}
-                      className="input"
-                      placeholder="#3b82f6"
-                      style={{ flex: 1, fontSize: '12px', padding: '4px 6px' }}
-                    />
-                  </div>
-                </label>
-                <label style={{ fontSize: '13px' }}>
-                  لون خلفية معلومات الطبيب
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <input
-                      type="color"
-                      value={doctorForm.doctorInfoBackgroundColor || "#dbeafe"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, doctorInfoBackgroundColor: e.target.value }))}
-                      style={{ width: '35px', height: '28px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
-                    />
-                    <input
-                      type="text"
-                      value={doctorForm.doctorInfoBackgroundColor || "#dbeafe"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, doctorInfoBackgroundColor: e.target.value }))}
-                      className="input"
-                      placeholder="#dbeafe"
-                      style={{ flex: 1, fontSize: '12px', padding: '4px 6px' }}
-                    />
-                  </div>
-                </label>
-                <label style={{ fontSize: '13px' }}>
-                  لون إطار معلومات الطبيب
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <input
-                      type="color"
-                      value={doctorForm.doctorInfoBorderColor || "#2563eb"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, doctorInfoBorderColor: e.target.value }))}
-                      style={{ width: '35px', height: '28px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
-                    />
-                    <input
-                      type="text"
-                      value={doctorForm.doctorInfoBorderColor || "#2563eb"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, doctorInfoBorderColor: e.target.value }))}
-                      className="input"
-                      placeholder="#2563eb"
-                      style={{ flex: 1, fontSize: '12px', padding: '4px 6px' }}
-                    />
-                  </div>
-                </label>
-                <label style={{ fontSize: '13px' }}>
-                  لون خلفية تفاصيل المراجع
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <input
-                      type="color"
-                      value={doctorForm.detailsBackgroundColor || "#dbeafe"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, detailsBackgroundColor: e.target.value }))}
-                      style={{ width: '35px', height: '28px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
-                    />
-                    <input
-                      type="text"
-                      value={doctorForm.detailsBackgroundColor || "#dbeafe"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, detailsBackgroundColor: e.target.value }))}
-                      className="input"
-                      placeholder="#dbeafe"
-                      style={{ flex: 1, fontSize: '12px', padding: '4px 6px' }}
-                    />
-                  </div>
-                </label>
-                <label style={{ fontSize: '13px' }}>
-                  لون نص تفاصيل المراجع
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <input
-                      type="color"
-                      value={doctorForm.detailsTextColor || "#1e40af"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, detailsTextColor: e.target.value }))}
-                      style={{ width: '35px', height: '28px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
-                    />
-                    <input
-                      type="text"
-                      value={doctorForm.detailsTextColor || "#1e40af"}
-                      onChange={e => setDoctorForm(prev => ({ ...prev, detailsTextColor: e.target.value }))}
-                      className="input"
-                      placeholder="#1e40af"
-                      style={{ flex: 1, fontSize: '12px', padding: '4px 6px' }}
-                    />
-                  </div>
-                </label>
-              </div>
-
-              <h4 style={{ marginTop: '12px', marginBottom: '8px', color: '#2a5d9f', fontSize: '15px' }}>تخصيص أحجام الخطوط</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                <label style={{ fontSize: '13px' }}>
-                  حجم خط معلومات الطبيب (12-24px)
+            <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+              <h4 style={{ marginTop: '0', marginBottom: '6px', color: '#2a5d9f', fontSize: '13px' }}>أحجام الخطوط والخلفيات</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                <label style={{ fontSize: '11px' }}>
+                  خط معلومات الطبيب
                   <input
                     type="number"
                     min="12"
@@ -893,15 +1047,15 @@ export default function DoctorPage() {
                     value={doctorForm.doctorInfoFontSize || "16"}
                     onChange={e => {
                       const value = Math.min(24, Math.max(12, parseInt(e.target.value) || 16));
-                      setDoctorForm(prev => ({ ...prev, doctorInfoFontSize: value.toString() }));
+                      handlePreviewChange('doctorInfoFontSize', value.toString());
                     }}
                     className="input"
                     placeholder="16"
-                    style={{ fontSize: '12px', padding: '4px 6px' }}
+                    style={{ fontSize: '11px', padding: '3px 5px' }}
                   />
                 </label>
-                <label style={{ fontSize: '13px' }}>
-                  حجم خط تفاصيل المراجع (10-20px)
+                <label style={{ fontSize: '11px' }}>
+                  خط تفاصيل المراجع
                   <input
                     type="number"
                     min="10"
@@ -909,68 +1063,75 @@ export default function DoctorPage() {
                     value={doctorForm.detailsFontSize || "14"}
                     onChange={e => {
                       const value = Math.min(20, Math.max(10, parseInt(e.target.value) || 14));
-                      setDoctorForm(prev => ({ ...prev, detailsFontSize: value.toString() }));
+                      handlePreviewChange('detailsFontSize', value.toString());
                     }}
                     className="input"
                     placeholder="14"
-                    style={{ fontSize: '12px', padding: '4px 6px' }}
+                    style={{ fontSize: '11px', padding: '3px 5px' }}
                   />
+                </label>
+                <label style={{ cursor: 'pointer', fontSize: '11px' }}>
+                  خلفية معلومات
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => handleImageUpload(e, 'doctorInfo')}
+                    style={{ fontSize: '11px', padding: '3px 5px' }}
+                  />
+                  {user?.doctorInfoBackgroundImage && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage('doctorInfo')}
+                      style={{ fontSize: '10px', padding: '2px 6px', marginTop: '4px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                    >
+                      حذف الصورة
+                    </button>
+                  )}
+                </label>
+                <label style={{ cursor: 'pointer', fontSize: '11px' }}>
+                  خلفية الوصفة
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => handleImageUpload(e, 'textarea')}
+                    style={{ fontSize: '11px', padding: '3px 5px' }}
+                  />
+                  {user?.textareaBackgroundImage && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage('textarea')}
+                      style={{ fontSize: '10px', padding: '2px 6px', marginTop: '4px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                    >
+                      حذف الصورة
+                    </button>
+                  )}
                 </label>
               </div>
-            </div>
-
-
-            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-              <h4 style={{ marginTop: '0', marginBottom: '8px', color: '#2a5d9f', fontSize: '15px' }}>إدارة الخلفيات</h4>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <label style={{ cursor: 'pointer' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginTop: '6px' }}>
+                <label style={{ cursor: 'pointer', fontSize: '11px' }}>
+                  خلفية تفاصيل المراجع
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleImageUpload(e, 'doctorInfo')}
-                    style={{ display: 'none' }}
+                    onChange={e => handleImageUpload(e, 'details')}
+                    style={{ fontSize: '11px', padding: '3px 5px' }}
                   />
-                  <span className="btn-secondary" style={{ display: 'inline-block', fontSize: '13px', padding: '6px 12px' }}>
-                    📷 خلفية معلومات الطبيب
-                  </span>
+                  {user?.detailsBackgroundImage && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage('details')}
+                      style={{ fontSize: '10px', padding: '2px 6px', marginTop: '4px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                    >
+                      حذف الصورة
+                    </button>
+                  )}
                 </label>
-                {user?.doctorInfoBackgroundImage && (
-                  <button 
-                    type="button"
-                    className="btn-outline" 
-                    onClick={() => handleRemoveImage('doctorInfo')}
-                    style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', fontSize: '13px', padding: '6px 12px' }}
-                  >
-                    🗑️ حذف خلفية معلومات الطبيب
-                  </button>
-                )}
-                <label style={{ cursor: 'pointer' }}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, 'textarea')}
-                    style={{ display: 'none' }}
-                  />
-                  <span className="btn-secondary" style={{ display: 'inline-block', fontSize: '13px', padding: '6px 12px' }}>
-                    📝 خلفية الوصفة الطبية
-                  </span>
-                </label>
-                {user?.textareaBackgroundImage && (
-                  <button 
-                    type="button"
-                    className="btn-outline" 
-                    onClick={() => handleRemoveImage('textarea')}
-                    style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', fontSize: '13px', padding: '6px 12px' }}
-                  >
-                    🗑️ حذف خلفية الوصفة
-                  </button>
-                )}
               </div>
             </div>
 
             <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
               <button type="submit" className="btn-primary">حفظ التغييرات</button>
-              <button type="button" className="btn-outline" onClick={() => setShowDoctorForm(false)}>إلغاء</button>
+              <button type="button" className="btn-outline" onClick={handleCancelDoctorForm}>إلغاء</button>
             </div>
           </form>
         </div>
@@ -993,12 +1154,11 @@ export default function DoctorPage() {
           className="card"
           style={{
             flex:'1 1 500px',
-            backgroundColor: user?.cardBackgroundColor || '#ffffff',
-            borderColor: user?.cardBorderColor || '#e5e7eb',
-            boxShadow: `0 4px 6px ${user?.cardShadowColor || 'rgba(0,0,0,0.05)'}`
+            backgroundColor: (showDoctorForm && previewSettings ? previewSettings.cardBackgroundColor : user?.cardBackgroundColor) || '#ffffff',
+            borderColor: (showDoctorForm && previewSettings ? previewSettings.cardBorderColor : user?.cardBorderColor) || '#e5e7eb',
+            boxShadow: `0 4px 6px ${(showDoctorForm && previewSettings ? previewSettings.cardShadowColor : user?.cardShadowColor) || 'rgba(0,0,0,0.05)'}`
           }}
         >
-          {/* Doctor Information Section */}
           {user && (
             <>
               <div 
@@ -1006,20 +1166,21 @@ export default function DoctorPage() {
                 style={{
                   textAlign: 'center', 
                   marginBottom: '20px', 
-                  borderBottom: `2px solid ${user.doctorInfoBorderColor || '#2a5d9f'}`, 
+                  borderBottom: `2px solid ${(showDoctorForm && previewSettings ? previewSettings.doctorInfoBorderColor : user.doctorInfoBorderColor) || '#2a5d9f'}`, 
                   paddingBottom: '10px', 
-                  backgroundColor: user.doctorInfoBackgroundColor || '#e3f2fd',
-                  backgroundImage: user?.doctorInfoBackgroundImage ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${user.doctorInfoBackgroundImage})` : 'none',
+                  backgroundColor: (showDoctorForm && previewSettings ? previewSettings.doctorInfoBackgroundColor : user.doctorInfoBackgroundColor) || '#e3f2fd',
+                  backgroundImage: (showDoctorForm && previewSettings ? previewSettings.doctorInfoBackgroundImage : user?.doctorInfoBackgroundImage) ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${showDoctorForm && previewSettings ? previewSettings.doctorInfoBackgroundImage : user.doctorInfoBackgroundImage})` : 'none',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
                   borderRadius: '20px',
-                  fontSize: `${user.doctorInfoFontSize || 16}px`
+                  fontSize: `${(showDoctorForm && previewSettings ? previewSettings.doctorInfoFontSize : user.doctorInfoFontSize) || 16}px`,
+                  color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : user.doctorInfoTextColor) || '#1e40af'
                 }}
               >
-                <p><strong>الدكتور</strong></p>
-                <p>{user.name}</p>
-                <p><strong>التخصص:</strong> {user.specialization || 'غير محدد'}</p>
+                <p style={{ color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : user.doctorInfoTextColor) || '#1e40af' }}><strong>الدكتور</strong></p>
+                <p style={{ color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : user.doctorInfoTextColor) || '#1e40af' }}>{(showDoctorForm && previewSettings ? previewSettings.name : user.name) || 'غير محدد'}</p>
+                <p style={{ color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : user.doctorInfoTextColor) || '#1e40af' }}><strong>التخصص:</strong> {(showDoctorForm && previewSettings ? previewSettings.specialization : user.specialization) || 'غير محدد'}</p>
               </div>
             </>
           )}
@@ -1029,8 +1190,8 @@ export default function DoctorPage() {
               <div 
                 className="details" 
                 style={{
-                  backgroundColor: user?.detailsBackgroundColor || '#e3f2fd', 
-                  backgroundImage: user?.backgroundImage ? `url(${user.backgroundImage})` : 'none',
+                  backgroundColor: (showDoctorForm && previewSettings ? previewSettings.detailsBackgroundColor : user?.detailsBackgroundColor) || '#e3f2fd', 
+                  backgroundImage: (showDoctorForm && previewSettings ? previewSettings.detailsBackgroundImage : user?.detailsBackgroundImage) ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${showDoctorForm && previewSettings ? previewSettings.detailsBackgroundImage : user.detailsBackgroundImage})` : 'none',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
@@ -1039,13 +1200,13 @@ export default function DoctorPage() {
                   display: 'grid', 
                   gridTemplateColumns: '1fr 1fr', 
                   gap: '1px',
-                  fontSize: `${user?.detailsFontSize || 14}px`
+                  fontSize: `${(showDoctorForm && previewSettings ? previewSettings.detailsFontSize : user?.detailsFontSize) || 14}px`
                 }}
               >
-                <p style={{margin: '5px 0', color: user?.detailsTextColor || '#1565c0'}}><strong>الاسم:</strong> {selectedPatient.firstName} {selectedPatient.lastName}</p>
-                <p style={{margin: '5px 0', color: user?.detailsTextColor || '#1565c0', display: 'flex', justifyContent: 'space-between'}}><span><strong>العمر:</strong> {selectedPatient.age}</span><span><strong>التاريخ:</strong> {selectedPatient.visitDate}</span></p>
-                <p style={{margin: '5px 0', color: user?.detailsTextColor || '#1565c0'}}><strong>الهاتف:</strong> {selectedPatient.phone}</p>
-                <p style={{margin: '5px 0', color: user?.detailsTextColor || '#1565c0'}}><strong>الجنس:</strong> {selectedPatient.gender}</p>
+                <p style={{margin: '5px 0', color: (showDoctorForm && previewSettings ? previewSettings.detailsTextColor : user?.detailsTextColor) || '#1565c0'}}><strong>الاسم:</strong> {selectedPatient.firstName} {selectedPatient.lastName}</p>
+                <p style={{margin: '5px 0', color: (showDoctorForm && previewSettings ? previewSettings.detailsTextColor : user?.detailsTextColor) || '#1565c0', display: 'flex', justifyContent: 'space-between'}}><span><strong>العمر:</strong> {selectedPatient.age}</span><span><strong>التاريخ:</strong> {selectedPatient.visitDate}</span></p>
+                <p style={{margin: '5px 0', color: (showDoctorForm && previewSettings ? previewSettings.detailsTextColor : user?.detailsTextColor) || '#1565c0'}}><strong>الهاتف:</strong> {selectedPatient.phone}</p>
+                <p style={{margin: '5px 0', color: (showDoctorForm && previewSettings ? previewSettings.detailsTextColor : user?.detailsTextColor) || '#1565c0'}}><strong>الجنس:</strong> {selectedPatient.gender}</p>
               </div>
             )}
             {selectedPatient && (
@@ -1058,7 +1219,6 @@ export default function DoctorPage() {
                   {selectedPatient.medicalHistory?.allergies && <li>الحساسية</li>}
                   {selectedPatient.medicalHistory?.other && <li>أخرى: {selectedPatient.medicalHistory.other}</li>}
                 </ul>
-
               </>
             )}
           </div>
@@ -1076,7 +1236,8 @@ export default function DoctorPage() {
                     fontSize: '18px', 
                     textAlign: 'left', 
                     direction: 'ltr',
-                    backgroundImage: user?.textareaBackgroundImage ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${user.textareaBackgroundImage})` : 'none',
+                    color: (showDoctorForm && previewSettings ? previewSettings.prescriptionTextColor : user?.prescriptionTextColor) || '#000000',
+                    backgroundImage: (showDoctorForm && previewSettings ? previewSettings.textareaBackgroundImage : user?.textareaBackgroundImage) ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${showDoctorForm && previewSettings ? previewSettings.textareaBackgroundImage : user.textareaBackgroundImage})` : 'none',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat'
@@ -1085,24 +1246,19 @@ export default function DoctorPage() {
             </label>
           </form>
 
-
-
           {user && (
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', borderTop: '2px solid #2a5d9f', paddingTop: '10px' }}>
-              <p><strong>العنوان:</strong> {user.title || 'غير محدد'}</p>
-              <p><strong>الهاتف:</strong> {user.phone || 'غير محدد'}</p>
+              <p><strong>العنوان:</strong> {(showDoctorForm && previewSettings ? previewSettings.title : user.title) || 'غير محدد'}</p>
+              <p><strong>الهاتف:</strong> {(showDoctorForm && previewSettings ? previewSettings.phone : user.phone) || 'غير محدد'}</p>
             </div>
           )}
         </div>
 
         {user && (
           <>
-            {/* Toggle button for secretary form */}
             <div style={{flexBasis: '100%', marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px'}}>
               <button type="button" className="btn-outline" onClick={handlePrintPrescription}>طباعة الوصفة</button>
             </div>
-
-
           </>
         )}
       </div>
