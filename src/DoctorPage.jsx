@@ -254,114 +254,178 @@ export default function DoctorPage() {
           <title>الوصفة الطبية</title>
           <meta charset="UTF-8">
           <style>
-            @page { size: 297mm 210mm; margin: 10mm; }
+            @page { 
+              size: A4 landscape; 
+              margin: 10mm; 
+            }
+            html, body { 
+              margin: 0;
+              padding: 0;
+              height: 100%;
+              overflow: hidden;
+            }
             body { 
-              font-family: Arial, sans-serif; 
+              font-family: 'Arial', 'Segoe UI', sans-serif; 
               direction: rtl; 
-              padding: 20px; 
-              margin: 0; 
-              background-color: #f8fafc; 
+              background-color: #ffffff; 
               -webkit-print-color-adjust: exact; 
               print-color-adjust: exact;
+              display: flex;
+              justify-content: flex-start;
+              align-items: flex-start;
             }
-            .container { position: relative; height: auto; }
+            .container { 
+              position: relative;
+              width: 50%;
+              max-width: 148mm;
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              page-break-after: avoid;
+              page-break-inside: avoid;
+            }
             .card { 
               background-color: ${cardBgColor}; 
               border: 2px solid ${cardBorderColor};
-              border-radius: 16px; 
-              box-shadow: 0 4px 6px ${cardShadowColor}; 
-              padding: 16px; 
-              width: 100%; 
-              max-width: 800px; 
-              margin: 0 auto;
+              border-radius: 12px; 
+              box-shadow: 0 2px 8px ${cardShadowColor}; 
+              padding: 12px; 
+              width: 100%;
               -webkit-print-color-adjust: exact; 
               print-color-adjust: exact;
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              max-height: 277mm;
+              page-break-inside: avoid;
+              page-break-after: avoid;
+            }
+            .content-wrapper {
+              flex-grow: 1;
+              display: flex;
+              flex-direction: column;
+              overflow: hidden;
             }
             .doctor-info {
               text-align: center; 
-              margin-bottom: 20px; 
+              margin-bottom: 8px; 
               border-bottom: 2px solid ${doctorInfoBorderColor}; 
-              padding-bottom: 10px;
+              padding: 6px;
               background-color: ${doctorInfoBgColor};
               ${doctorInfoBgStyle}
-              border-radius: 20px;
-              font-size: ${doctorInfoFontSize}px;
+              border-radius: 8px;
+              font-size: ${Math.max(11, parseInt(doctorInfoFontSize) - 3)}px;
               color: ${doctorInfoTextColor};
               -webkit-print-color-adjust: exact; 
               print-color-adjust: exact;
             }
             .doctor-info p {
-              margin: 5px 0;
+              margin: 2px 0;
               color: ${doctorInfoTextColor};
+            }
+            .doctor-info strong {
+              font-size: ${Math.max(12, parseInt(doctorInfoFontSize) - 2)}px;
             }
             .details { 
               background-color: ${detailsBgColor}; 
               ${detailsBgStyle}
-              padding: 10px; 
-              border-radius: 5px; 
+              padding: 6px; 
+              border-radius: 6px; 
               display: grid; 
               grid-template-columns: 1fr 1fr; 
-              gap: 1px; 
-              margin-bottom: 16px; 
-              font-size: ${detailsFontSize}px;
+              gap: 3px; 
+              margin-bottom: 8px; 
+              font-size: ${Math.max(9, parseInt(detailsFontSize) - 3)}px;
               -webkit-print-color-adjust: exact; 
               print-color-adjust: exact; 
             }
             .details p { 
-              margin: 5px 0; 
+              margin: 2px 0; 
               color: ${detailsTextColor}; 
             }
             .prescription { 
-              padding: 8px 12px; 
+              padding: 8px; 
               border: 1px solid #cbd5e1; 
-              border-radius: 12px; 
+              border-radius: 6px; 
               background-color: #fff; 
               ${textareaBgStyle}
               white-space: pre-wrap; 
-              margin-bottom: 16px;
+              margin-bottom: 8px;
+              flex-grow: 1;
+              overflow: hidden;
               -webkit-print-color-adjust: exact; 
               print-color-adjust: exact;
+              max-height: 180mm;
             }
             .prescription p { 
               margin: 0; 
-              font-size: 20px; 
-              line-height: 1.5; 
+              font-size: 13px; 
+              line-height: 1.3; 
               text-align: left; 
               direction: ltr;
               color: ${prescriptionTextColor};
             }
             .footer { 
               background-color: ${detailsBgColor}; 
-              padding: 10px; 
-              border-radius: 5px; 
+              padding: 8px 12px; 
+              margin-bottom: 0;
+              border-radius: 6px; 
               display: flex; 
               justify-content: space-between; 
-              margin-top: 16px; 
+              align-items: center;
               color: ${detailsTextColor}; 
               -webkit-print-color-adjust: exact; 
-              print-color-adjust: exact; 
+              print-color-adjust: exact;
+              margin-top: auto;
+              border: 2px solid ${doctorInfoBorderColor};
+              border-top: 3px solid ${doctorInfoBorderColor};
+              font-size: ${Math.max(10, parseInt(detailsFontSize) - 2)}px;
+              page-break-inside: avoid;
+              break-inside: avoid;
+              flex-shrink: 0;
             }
             .footer p {
-              margin: 5px 0;
+              margin: 0;
+              font-weight: bold;
+              color: ${detailsTextColor};
+            }
+            @media print {
+              html, body {
+                height: 100%;
+                overflow: hidden;
+              }
+              .container {
+                height: 90%;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+              }
+              .card {
+                height: 100%;
+                max-height: 277mm;
+                page-break-inside: avoid;
+                page-break-after: avoid;
+              }
             }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="card">
-              <div class="doctor-info">
-                <p><strong>الدكتور</strong></p>
-                <p>${user ? user.name : 'غير محدد'}</p>
-                <p><strong>التخصص:</strong> ${user ? user.specialization || 'غير محدد' : 'غير محدد'}</p>
-              </div>
-              <div class="details">
-                <p><strong>الاسم:</strong> ${selectedPatient.firstName} ${selectedPatient.lastName}</p>
-                <p style="display: flex; justify-content: space-between;"><span><strong>العمر:</strong> ${selectedPatient.age}</span><span><strong>التاريخ:</strong> ${selectedPatient.visitDate}</span></p>
-                <p><strong>الهاتف:</strong> ${selectedPatient.phone}</p>
-                <p><strong>الجنس:</strong> ${selectedPatient.gender}</p>
-              </div>
-              <div class="prescription">
-                <p>${prescription || 'غير محدد'}</p>
+              <div class="content-wrapper">
+                <div class="doctor-info">
+                  <p><strong>الدكتور</strong></p>
+                  <p>${user ? user.name : 'غير محدد'}</p>
+                  <p><strong>التخصص:</strong> ${user ? user.specialization || 'غير محدد' : 'غير محدد'}</p>
+                </div>
+                <div class="details">
+                  <p><strong>الاسم:</strong> ${selectedPatient.firstName} ${selectedPatient.lastName}</p>
+                  <p style="display: flex; justify-content: space-between;"><span><strong>العمر:</strong> ${selectedPatient.age}</span><span><strong>التاريخ:</strong> ${selectedPatient.visitDate}</span></p>
+                  <p><strong>الهاتف:</strong> ${selectedPatient.phone}</p>
+                  <p><strong>الجنس:</strong> ${selectedPatient.gender}</p>
+                </div>
+                <div class="prescription">
+                  <p>${prescription || 'غير محدد'}</p>
+                </div>
               </div>
               <div class="footer">
                 <p><strong>العنوان:</strong> ${user ? user.title || 'غير محدد' : 'غير محدد'}</p>
@@ -547,7 +611,7 @@ export default function DoctorPage() {
       <div className="doctor-page-header">
         <h2 className="doctor-page-title">
           <span className="icon">🏥</span>
-          <span>صفحة الطبيب</span>
+          <span>عيادة الطبيب</span>
         </h2>
         <div className="doctor-page-datetime">
           {new Date().toLocaleString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
