@@ -457,6 +457,13 @@ export default function DoctorPage() {
     setStatus(selectedPatient.id, "done");
     setSelectedPatient(null);
     setPrescription("");
+    
+    // التمرير السلس إلى جدول المراجعين بعد الطباعة
+    setTimeout(() => {
+      if (tableRef.current) {
+        tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 600);
   }
 
   function handleSelect(patient) {
