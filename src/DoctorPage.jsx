@@ -6,33 +6,37 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 export default function DoctorPage() {
-  const { state, removePatient, addPatient, updatePatient, setStatus, updateUser, removeAllPatients } = useClinic();
+  const { state, removePatient, addPatient, updatePatient, setStatus, removeAllPatients, updateUser } = useClinic();
   const { user } = useContext(ClinicContext);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [prescription, setPrescription] = useState("");
+
+  // Default doctor settings from user context
+  const doctorSettings = {
+    name: user?.name || "",
+    specialization: user?.specialization || "",
+    title: user?.title || "",
+    phone: user?.phone || "",
+    cardBackgroundColor: user?.cardBackgroundColor || "#ffffff",
+    cardBorderColor: user?.cardBorderColor || "#e5e7eb",
+    cardShadowColor: user?.cardShadowColor || "rgba(0,0,0,0.05)",
+    formBackgroundColor: user?.formBackgroundColor || "#f0f9ff",
+    formBorderColor: user?.formBorderColor || "#3b82f6",
+    doctorInfoBackgroundColor: user?.doctorInfoBackgroundColor || "#dbeafe",
+    doctorInfoBorderColor: user?.doctorInfoBorderColor || "#2563eb",
+    doctorInfoTextColor: user?.doctorInfoTextColor || "#1e40af",
+    detailsBackgroundColor: user?.detailsBackgroundColor || "#dbeafe",
+    detailsTextColor: user?.detailsTextColor || "#1e40af",
+    prescriptionTextColor: user?.prescriptionTextColor || "#000000",
+    doctorInfoFontSize: user?.doctorInfoFontSize || "16",
+    detailsFontSize: user?.detailsFontSize || "14",
+    doctorInfoBackgroundImage: user?.doctorInfoBackgroundImage || "",
+    textareaBackgroundImage: user?.textareaBackgroundImage || "",
+    detailsBackgroundImage: user?.detailsBackgroundImage || ""
+  };
+
   const [showDoctorForm, setShowDoctorForm] = useState(false);
-  const [doctorForm, setDoctorForm] = useState({
-    name: "",
-    specialization: "",
-    title: "",
-    phone: "",
-    cardBackgroundColor: "#ffffff",
-    cardBorderColor: "#e5e7eb",
-    cardShadowColor: "rgba(0,0,0,0.05)",
-    formBackgroundColor: "#f0f9ff",
-    formBorderColor: "#3b82f6",
-    doctorInfoBackgroundColor: "#dbeafe",
-    doctorInfoBorderColor: "#2563eb",
-    doctorInfoTextColor: "#1e40af",
-    detailsBackgroundColor: "#dbeafe",
-    detailsTextColor: "#1e40af",
-    prescriptionTextColor: "#000000",
-    doctorInfoFontSize: "16",
-    detailsFontSize: "14",
-    doctorInfoBackgroundImage: "",
-    textareaBackgroundImage: "",
-    detailsBackgroundImage: ""
-  });
+  const [doctorForm, setDoctorForm] = useState(doctorSettings);
 
   // حالة للمعاينة المباشرة - تحتوي على الإعدادات المؤقتة
   const [previewSettings, setPreviewSettings] = useState(null);
@@ -40,34 +44,12 @@ export default function DoctorPage() {
   const [originalSettings, setOriginalSettings] = useState(null);
 
   useEffect(() => {
-    if (showDoctorForm && user) {
-      const currentSettings = {
-        name: user.name || "",
-        specialization: user.specialization || "",
-        title: user.title || "",
-        phone: user.phone || "",
-        cardBackgroundColor: user.cardBackgroundColor || "#ffffff",
-        cardBorderColor: user.cardBorderColor || "#e5e7eb",
-        cardShadowColor: user.cardShadowColor || "rgba(0,0,0,0.05)",
-        formBackgroundColor: user.formBackgroundColor || "#f0f9ff",
-        formBorderColor: user.formBorderColor || "#3b82f6",
-        doctorInfoBackgroundColor: user.doctorInfoBackgroundColor || "#dbeafe",
-        doctorInfoBorderColor: user.doctorInfoBorderColor || "#2563eb",
-        doctorInfoTextColor: user.doctorInfoTextColor || "#1e40af",
-        detailsBackgroundColor: user.detailsBackgroundColor || "#dbeafe",
-        detailsTextColor: user.detailsTextColor || "#1e40af",
-        prescriptionTextColor: user.prescriptionTextColor || "#000000",
-        doctorInfoFontSize: user.doctorInfoFontSize || "16",
-        detailsFontSize: user.detailsFontSize || "14",
-        doctorInfoBackgroundImage: user.doctorInfoBackgroundImage || "",
-        textareaBackgroundImage: user.textareaBackgroundImage || "",
-        detailsBackgroundImage: user.detailsBackgroundImage || ""
-      };
-      setDoctorForm(currentSettings);
-      setPreviewSettings(currentSettings);
-      setOriginalSettings(currentSettings);
+    if (showDoctorForm) {
+      setDoctorForm(doctorSettings);
+      setPreviewSettings(doctorSettings);
+      setOriginalSettings(doctorSettings);
     }
-  }, [showDoctorForm, user]);
+  }, [showDoctorForm]);
 
   const [showForm, setShowForm] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -217,24 +199,24 @@ export default function DoctorPage() {
   function handlePrintPrescription() {
     if (!selectedPatient) return;
     const printWindow = window.open('', '_blank');
-    
-    const cardBgColor = user?.cardBackgroundColor || '#ffffff';
-    const cardBorderColor = user?.cardBorderColor || '#e5e7eb';
-    const cardShadowColor = user?.cardShadowColor || 'rgba(0,0,0,0.05)';
-    
-    const doctorInfoBgColor = user?.doctorInfoBackgroundColor || '#e3f2fd';
-    const doctorInfoBorderColor = user?.doctorInfoBorderColor || '#2a5d9f';
-    const doctorInfoTextColor = user?.doctorInfoTextColor || '#1e40af';
-    const doctorInfoBgImage = user?.doctorInfoBackgroundImage || '';
-    const doctorInfoFontSize = user?.doctorInfoFontSize || '16';
-    
-    const detailsBgColor = user?.detailsBackgroundColor || '#e3f2fd';
-    const detailsTextColor = user?.detailsTextColor || '#1565c0';
-    const detailsFontSize = user?.detailsFontSize || '14';
-    const detailsBgImage = user?.detailsBackgroundImage || '';
-    
-    const prescriptionTextColor = user?.prescriptionTextColor || '#000000';
-    const textareaBgImage = user?.textareaBackgroundImage || '';
+
+    const cardBgColor = '#ffffff';
+    const cardBorderColor = '#e5e7eb';
+    const cardShadowColor = 'rgba(0,0,0,0.05)';
+
+    const doctorInfoBgColor = '#e3f2fd';
+    const doctorInfoBorderColor = '#2a5d9f';
+    const doctorInfoTextColor = '#1e40af';
+    const doctorInfoBgImage = '';
+    const doctorInfoFontSize = '16';
+
+    const detailsBgColor = '#e3f2fd';
+    const detailsTextColor = '#1565c0';
+    const detailsFontSize = '14';
+    const detailsBgImage = '';
+
+    const prescriptionTextColor = '#000000';
+    const textareaBgImage = '';
     
     const doctorInfoBgStyle = doctorInfoBgImage 
       ? `background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${doctorInfoBgImage}); background-size: cover; background-position: center; background-repeat: no-repeat;`
@@ -414,8 +396,8 @@ export default function DoctorPage() {
               <div class="content-wrapper">
                 <div class="doctor-info">
                   <p><strong>الدكتور</strong></p>
-                  <p>${user ? user.name : 'غير محدد'}</p>
-                  <p><strong>التخصص:</strong> ${user ? user.specialization || 'غير محدد' : 'غير محدد'}</p>
+                  <p>${(showDoctorForm && previewSettings ? previewSettings.name : doctorSettings.name) || 'غير محدد'}</p>
+                  <p><strong>التخصص:</strong> ${(showDoctorForm && previewSettings ? previewSettings.specialization : doctorSettings.specialization) || 'غير محدد'}</p>
                 </div>
                 <div class="details">
                   <p><strong>الاسم:</strong> ${selectedPatient.firstName} ${selectedPatient.lastName}</p>
@@ -551,9 +533,8 @@ export default function DoctorPage() {
 
   function handleDoctorSubmit(e) {
     e.preventDefault();
-    console.log("Submitting doctor form:", doctorForm);
-    updateUser(doctorForm);
-    alert("تم تحديث معلومات الطبيب بنجاح!");
+    console.log("Doctor form submitted:", doctorForm);
+    alert("تم حفظ الإعدادات بنجاح!");
     setShowDoctorForm(false);
     setPreviewSettings(null);
     setOriginalSettings(null);
@@ -625,31 +606,7 @@ export default function DoctorPage() {
         </div>
       </div>
 
-      {/* User Info Card */}
-      {user && (
-        <div style={{ marginBottom: '16px' }}>
-          <div className="card" style={{ 
-            border: '1px solid #3b82f6', 
-            borderRadius: '12px', 
-            padding: '12px', 
-            backgroundColor: '#eff6ff',
-            maxWidth: '600px',
-            margin: '0 auto'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ fontSize: '32px' }}>👨‍⚕️</div>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ margin: '0 0 4px 0', color: '#1e40af', fontSize: '18px' }}>
-                  {user.name}
-                </h3>
-                <p style={{ margin: '0', fontSize: '14px', color: '#3b82f6' }}>
-                  {user.specialization || 'طبيب'} • {user.email}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button className="btn-primary" onClick={() => { setShowForm(true); setEditingPatient(null); }}>
@@ -1225,36 +1182,32 @@ export default function DoctorPage() {
           className="card"
           style={{
             flex:'1 1 500px',
-            backgroundColor: (showDoctorForm && previewSettings ? previewSettings.cardBackgroundColor : user?.cardBackgroundColor) || '#ffffff',
-            borderColor: (showDoctorForm && previewSettings ? previewSettings.cardBorderColor : user?.cardBorderColor) || '#e5e7eb',
-            boxShadow: `0 4px 6px ${(showDoctorForm && previewSettings ? previewSettings.cardShadowColor : user?.cardShadowColor) || 'rgba(0,0,0,0.05)'}`
+            backgroundColor: (showDoctorForm && previewSettings ? previewSettings.cardBackgroundColor : doctorSettings.cardBackgroundColor) || '#ffffff',
+            borderColor: (showDoctorForm && previewSettings ? previewSettings.cardBorderColor : doctorSettings.cardBorderColor) || '#e5e7eb',
+            boxShadow: `0 4px 6px ${(showDoctorForm && previewSettings ? previewSettings.cardShadowColor : doctorSettings.cardShadowColor) || 'rgba(0,0,0,0.05)'}`
           }}
         >
-          {user && (
-            <>
-              <div 
-                className="doctor-info" 
-                style={{
-                  textAlign: 'center', 
-                  marginBottom: '20px', 
-                  borderBottom: `2px solid ${(showDoctorForm && previewSettings ? previewSettings.doctorInfoBorderColor : user.doctorInfoBorderColor) || '#2a5d9f'}`, 
-                  paddingBottom: '10px', 
-                  backgroundColor: (showDoctorForm && previewSettings ? previewSettings.doctorInfoBackgroundColor : user.doctorInfoBackgroundColor) || '#e3f2fd',
-                  backgroundImage: (showDoctorForm && previewSettings ? previewSettings.doctorInfoBackgroundImage : user?.doctorInfoBackgroundImage) ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${showDoctorForm && previewSettings ? previewSettings.doctorInfoBackgroundImage : user.doctorInfoBackgroundImage})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                  borderRadius: '20px',
-                  fontSize: `${(showDoctorForm && previewSettings ? previewSettings.doctorInfoFontSize : user.doctorInfoFontSize) || 16}px`,
-                  color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : user.doctorInfoTextColor) || '#1e40af'
-                }}
-              >
-                <p style={{ color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : user.doctorInfoTextColor) || '#1e40af' }}><strong>الدكتور</strong></p>
-                <p style={{ color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : user.doctorInfoTextColor) || '#1e40af' }}>{(showDoctorForm && previewSettings ? previewSettings.name : user.name) || 'غير محدد'}</p>
-                <p style={{ color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : user.doctorInfoTextColor) || '#1e40af' }}><strong>التخصص:</strong> {(showDoctorForm && previewSettings ? previewSettings.specialization : user.specialization) || 'غير محدد'}</p>
-              </div>
-            </>
-          )}
+          <div
+            className="doctor-info"
+            style={{
+              textAlign: 'center',
+              marginBottom: '20px',
+              borderBottom: `2px solid ${(showDoctorForm && previewSettings ? previewSettings.doctorInfoBorderColor : doctorSettings.doctorInfoBorderColor) || '#2a5d9f'}`,
+              paddingBottom: '10px',
+              backgroundColor: (showDoctorForm && previewSettings ? previewSettings.doctorInfoBackgroundColor : doctorSettings.doctorInfoBackgroundColor) || '#e3f2fd',
+              backgroundImage: (showDoctorForm && previewSettings ? previewSettings.doctorInfoBackgroundImage : doctorSettings.doctorInfoBackgroundImage) ? `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url(${showDoctorForm && previewSettings ? previewSettings.doctorInfoBackgroundImage : doctorSettings.doctorInfoBackgroundImage})` : 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              borderRadius: '20px',
+              fontSize: `${(showDoctorForm && previewSettings ? previewSettings.doctorInfoFontSize : doctorSettings.doctorInfoFontSize) || 16}px`,
+              color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : doctorSettings.doctorInfoTextColor) || '#1e40af'
+            }}
+          >
+            <p style={{ color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : doctorSettings.doctorInfoTextColor) || '#1e40af' }}><strong>الدكتور</strong></p>
+            <p style={{ color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : doctorSettings.doctorInfoTextColor) || '#1e40af' }}>{(showDoctorForm && previewSettings ? previewSettings.name : doctorSettings.name) || 'غير محدد'}</p>
+            <p style={{ color: (showDoctorForm && previewSettings ? previewSettings.doctorInfoTextColor : doctorSettings.doctorInfoTextColor) || '#1e40af' }}><strong>التخصص:</strong> {(showDoctorForm && previewSettings ? previewSettings.specialization : doctorSettings.specialization) || 'غير محدد'}</p>
+          </div>
 
           <div style={{marginBottom:'16px'}}>
             {selectedPatient && (
