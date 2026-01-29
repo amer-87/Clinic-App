@@ -1,10 +1,12 @@
 {
   "name": "clinic-app",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "electron.cjs",
   "homepage": ".",
+  "author": "amer-87",
+  "description": "نظام إدارة عيادة طبية متكامل",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,32 +15,61 @@
     "electron:dev": "vite build && electron .",
     "electron:serve": "vite & cross-env NODE_ENV=development electron .",
     "electron:build": "vite build && electron-builder --win",
-    "dist": "electron-builder"
+    "dist": "vite build && electron-builder --win",
+    "dist:portable": "vite build && electron-builder --win portable"
   },
   "build": {
     "appId": "com.clinic.app",
     "productName": "Clinic App",
+    "copyright": "Copyright © 2024 amer-87",
     "directories": {
-      "output": "dist-electron"
+      "output": "dist-electron",
+      "buildResources": "build"
     },
     "files": [
       "dist/**/*",
-      "electron.cjs"
+      "electron.cjs",
+      "package.json"
     ],
-    "asar": false,
+    "asar": true,
+    "compression": "maximum",
     "win": {
-      "target": "squirrel",
-      "forceCodeSigning": false
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "verifyUpdateCodeSignature": false,
+      "forceCodeSigning": false,
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "allowElevation": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Clinic App",
       "runAfterFinish": true,
-      "menuCategory": "Clinic Applications"
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "menuCategory": true,
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "language": "1025",
+      "warningsAsErrors": false
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
     }
   },
   "dependencies": {

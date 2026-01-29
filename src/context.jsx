@@ -2,10 +2,47 @@ import { useState, useEffect, useReducer, useMemo } from "react";
 import { ClinicContext } from "./contextDef";
 export { ClinicContext } from "./contextDef";
 
-const initialState = { patients: [], selectedPatientId: null };
+const initialState = {
+  patients: [],
+  selectedPatientId: null,
+  credentials: {
+    username: "owner",
+    password: "owner123"
+  },
+  user: {
+    name: "المالك",
+    username: "owner",
+    role: "owner",
+    createdAt: new Date().toISOString(),
+    // Doctor settings
+    cardBackgroundColor: "#ffffff",
+    cardBorderColor: "#e5e7eb",
+    cardShadowColor: "rgba(0,0,0,0.05)",
+    formBackgroundColor: "#f0f9ff",
+    formBorderColor: "#3b82f6",
+    doctorInfoBackgroundColor: "#dbeafe",
+    doctorInfoBorderColor: "#2563eb",
+    doctorInfoTextColor: "#1e40af",
+    detailsBackgroundColor: "#dbeafe",
+    detailsTextColor: "#1e40af",
+    prescriptionTextColor: "#000000",
+    doctorInfoFontSize: "16",
+    detailsFontSize: "14",
+    doctorInfoBackgroundImage: "",
+    textareaBackgroundImage: "",
+    detailsBackgroundImage: "",
+    title: "",
+    phone: "",
+    specialization: ""
+  }
+};
 
 function clinicReducer(state, action) {
   switch(action.type) {
+    case "LOGIN": return { ...state, user: action.payload };
+    case "LOGOUT": return { ...state, user: null };
+    case "UPDATE_CREDENTIALS": return { ...state, credentials: action.payload };
+
     case "ADD_PATIENT": return { ...state, patients: [action.payload, ...state.patients] };
     case "UPDATE_PATIENT": {
       const { id, changes } = action.payload;
@@ -24,83 +61,11 @@ function clinicReducer(state, action) {
       const { id } = action.payload;
       return { ...state, selectedPatientId: id };
     }
-    default: return state;
-  }
-}
-
-const initialUserState = { 
-  user: null,
-  backgroundImage: ""
- };
-
-function userReducer(state, action) {
-  switch(action.type) {
-    case "SET_USER": {
-      return { ...state, user: action.payload };
-    }
-    case "LOGOUT":
-      return { ...state, user: null };
-    default:
-      return state;
-  }
-}
-
-const initialUsersState = { 
-  users: [
-    {
-      name: "المالك",
-      email: "aamerblack@gmail.com",
-      role: "owner",
-      status: "approved",
-      password: "owner123", // يمكن تغييرها لاحقاً
-      createdAt: new Date().toISOString()
-    }
-  ] 
-};
-
-function usersReducer(state, action) {
-  switch(action.type) {
-    case "ADD_USER": {
-      console.log("ADD_USER action payload:", action.payload);
-      const newState = { ...state, users: [...state.users, action.payload] };
-      console.log("New users state:", newState.users);
-      return newState;
-    }
-    case "SET_PASSWORD": {
-      const { email, password } = action.payload;
-      return {
-        ...state,
-        users: state.users.map(u =>
-          u.email === email
-            ? { ...u, password }
-            : u
-        )
-      };
-    }
-    case "UPDATE_OWNER": {
-      const { newEmail, newPassword } = action.payload;
-      return {
-        ...state,
-        users: state.users.map(u =>
-          u.role === 'owner'
-            ? { ...u, email: newEmail, password: newPassword }
-            : u
-        )
-      };
-    }
     case "UPDATE_USER": {
-      const { email, changes } = action.payload;
-      return {
-        ...state,
-        users: state.users.map(u =>
-          u.email === email
-            ? { ...u, ...changes }
-            : u
-        )
-      };
+      const { changes } = action.payload;
+      return { ...state, user: { ...state.user, ...changes } };
     }
-    default:
-      return state;
+    default: return state;
   }
 }
 
@@ -108,49 +73,48 @@ export function ClinicProvider({ children }) {
   const [persist,setPersist] = useLocalStorage("clinic-store", initialState);
   const [state,dispatch] = useReducer(clinicReducer, persist);
 
-  const [userPersist, setUserPersist] = useLocalStorage("clinic-user", initialUserState);
-  const [userState, userDispatch] = useReducer(userReducer, userPersist);
-
-  const [usersPersist, setUsersPersist] = useLocalStorage("clinic-users", initialUsersState);
-  const [usersState, usersDispatch] = useReducer(usersReducer, usersPersist);
-
   useEffect(()=>setPersist(state), [state, setPersist]);
-  useEffect(()=>setUserPersist(userState), [userState, setUserPersist]);
-  useEffect(()=>setUsersPersist(usersState), [usersState, setUsersPersist]);
-
-  useEffect(() => {
-    console.log("Users state updated:", usersState.users);
-  }, [usersState.users]);
-
-  // Initialize owner account if not exists
-  useEffect(() => {
-    const hasOwner = usersState.users.some(user => user.role === 'owner');
-    if (!hasOwner) {
-      const ownerAccount = {
-        name: "المالك",
-        email: "aamerblack@gmail.com",
-        role: "owner",
-        status: "approved",
-        password: "owner123",
-        createdAt: new Date().toISOString()
-      };
-      usersDispatch({ type: "ADD_USER", payload: ownerAccount });
-      console.log("Owner account created");
-    }
-  }, [usersState.users]);
-
-  // Auto-login as owner if no user is set
-  useEffect(() => {
-    if (!userState.user && usersState.users.length > 0) {
-      const owner = usersState.users.find(user => user.role === 'owner');
-      if (owner) {
-        userDispatch({ type: "SET_USER", payload: owner });
-        console.log("Auto-logged in as owner");
-      }
-    }
-  }, [userState.user, usersState.users]);
 
   const api = useMemo(() => ({
+    // Authentication
+    login: (username, password) => {
+      if (username === state.credentials.username && password === state.credentials.password) {
+        const userData = {
+          name: "المالك",
+          username: username,
+          role: "owner",
+          createdAt: new Date().toISOString(),
+          // Doctor settings
+          cardBackgroundColor: "#ffffff",
+          cardBorderColor: "#e5e7eb",
+          cardShadowColor: "rgba(0,0,0,0.05)",
+          formBackgroundColor: "#f0f9ff",
+          formBorderColor: "#3b82f6",
+          doctorInfoBackgroundColor: "#dbeafe",
+          doctorInfoBorderColor: "#2563eb",
+          doctorInfoTextColor: "#1e40af",
+          detailsBackgroundColor: "#dbeafe",
+          detailsTextColor: "#1e40af",
+          prescriptionTextColor: "#000000",
+          doctorInfoFontSize: "16",
+          detailsFontSize: "14",
+          doctorInfoBackgroundImage: "",
+          textareaBackgroundImage: "",
+          detailsBackgroundImage: "",
+          title: "",
+          phone: "",
+          specialization: ""
+        };
+        dispatch({ type: "LOGIN", payload: userData });
+        return true;
+      }
+      return false;
+    },
+    logout: () => dispatch({ type: "LOGOUT" }),
+    updateOwner: (newUsername, newPassword) => {
+      dispatch({ type: "UPDATE_CREDENTIALS", payload: { username: newUsername, password: newPassword } });
+    },
+
     // Patient management
     addPatient: (patient) => dispatch({ type:"ADD_PATIENT", payload:patient }),
     updatePatient: (id, changes) => dispatch({ type:"UPDATE_PATIENT", payload:{id,changes} }),
@@ -158,41 +122,10 @@ export function ClinicProvider({ children }) {
     removePatient: (id) => dispatch({ type:"REMOVE_PATIENT", payload:{id} }),
     removeAllPatients: () => dispatch({ type:"REMOVE_ALL_PATIENTS" }),
     setSelectedPatientId: (id) => dispatch({ type:"SET_SELECTED_PATIENT_ID", payload:{id} }),
-    
-    // User authentication
-    login: (username, password) => {
-      console.log("Login attempt:", username, password);
-      console.log("Available users:", usersState.users);
+    updateUser: (changes) => dispatch({ type:"UPDATE_USER", payload:{changes} })
+  }), [state.credentials]);
 
-      const user = usersState.users.find(
-        u => u.email.toLowerCase() === username.toLowerCase() && u.password.toLowerCase() === password.toLowerCase() && u.status === 'approved'
-      );
-
-      console.log("Found user:", user);
-
-      if (user) {
-        userDispatch({ type: "SET_USER", payload: user });
-        return true;
-      }
-      return false;
-    },
-    setUser: (user) => userDispatch({ type: "SET_USER", payload: user }),
-    logout: () => userDispatch({ type: "LOGOUT" }),
-    user: userState.user,
-    
-    // User management
-    users: usersState.users,
-    addUser: (user) => usersDispatch({ type: "ADD_USER", payload: user }),
-    setPassword: (email, password) => usersDispatch({ type: "SET_PASSWORD", payload: { email, password } }),
-    updateOwner: (newEmail, newPassword) => usersDispatch({ type: "UPDATE_OWNER", payload: { newEmail, newPassword } }),
-    updateUser: (changes) => {
-      usersDispatch({ type: "UPDATE_USER", payload: { email: userState.user.email, changes } });
-      const updatedUser = { ...userState.user, ...changes };
-      userDispatch({ type: "SET_USER", payload: updatedUser });
-    }
-  }), [userState.user, usersState.users]);
-
-  return <ClinicContext.Provider value={{state,...api}}>{children}</ClinicContext.Provider>;
+  return <ClinicContext.Provider value={{user: state.user, state: { patients: state.patients }, ...api}}>{children}</ClinicContext.Provider>;
 }
 
 function useLocalStorage(key, initialValue) {
