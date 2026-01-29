@@ -5,10 +5,14 @@ export { ClinicContext } from "./contextDef";
 const initialState = {
   patients: [],
   selectedPatientId: null,
+  credentials: {
+    username: "owner",
+    password: "owner123"
+  },
   user: {
-    name: "",
-    username: "",
-    role: "doctor",
+    name: "المالك",
+    username: "owner",
+    role: "owner",
     createdAt: new Date().toISOString(),
     // Doctor settings
     cardBackgroundColor: "#ffffff",
@@ -35,6 +39,10 @@ const initialState = {
 
 function clinicReducer(state, action) {
   switch(action.type) {
+    case "LOGIN": return { ...state, user: action.payload };
+    case "LOGOUT": return { ...state, user: null };
+    case "UPDATE_CREDENTIALS": return { ...state, credentials: action.payload };
+
     case "ADD_PATIENT": return { ...state, patients: [action.payload, ...state.patients] };
     case "UPDATE_PATIENT": {
       const { id, changes } = action.payload;
@@ -68,6 +76,45 @@ export function ClinicProvider({ children }) {
   useEffect(()=>setPersist(state), [state, setPersist]);
 
   const api = useMemo(() => ({
+    // Authentication
+    login: (username, password) => {
+      if (username === state.credentials.username && password === state.credentials.password) {
+        const userData = {
+          name: "المالك",
+          username: username,
+          role: "owner",
+          createdAt: new Date().toISOString(),
+          // Doctor settings
+          cardBackgroundColor: "#ffffff",
+          cardBorderColor: "#e5e7eb",
+          cardShadowColor: "rgba(0,0,0,0.05)",
+          formBackgroundColor: "#f0f9ff",
+          formBorderColor: "#3b82f6",
+          doctorInfoBackgroundColor: "#dbeafe",
+          doctorInfoBorderColor: "#2563eb",
+          doctorInfoTextColor: "#1e40af",
+          detailsBackgroundColor: "#dbeafe",
+          detailsTextColor: "#1e40af",
+          prescriptionTextColor: "#000000",
+          doctorInfoFontSize: "16",
+          detailsFontSize: "14",
+          doctorInfoBackgroundImage: "",
+          textareaBackgroundImage: "",
+          detailsBackgroundImage: "",
+          title: "",
+          phone: "",
+          specialization: ""
+        };
+        dispatch({ type: "LOGIN", payload: userData });
+        return true;
+      }
+      return false;
+    },
+    logout: () => dispatch({ type: "LOGOUT" }),
+    updateOwner: (newUsername, newPassword) => {
+      dispatch({ type: "UPDATE_CREDENTIALS", payload: { username: newUsername, password: newPassword } });
+    },
+
     // Patient management
     addPatient: (patient) => dispatch({ type:"ADD_PATIENT", payload:patient }),
     updatePatient: (id, changes) => dispatch({ type:"UPDATE_PATIENT", payload:{id,changes} }),
@@ -76,9 +123,9 @@ export function ClinicProvider({ children }) {
     removeAllPatients: () => dispatch({ type:"REMOVE_ALL_PATIENTS" }),
     setSelectedPatientId: (id) => dispatch({ type:"SET_SELECTED_PATIENT_ID", payload:{id} }),
     updateUser: (changes) => dispatch({ type:"UPDATE_USER", payload:{changes} })
-  }), []);
+  }), [state.credentials]);
 
-  return <ClinicContext.Provider value={{state,...api}}>{children}</ClinicContext.Provider>;
+  return <ClinicContext.Provider value={{user: state.user, state: { patients: state.patients }, ...api}}>{children}</ClinicContext.Provider>;
 }
 
 function useLocalStorage(key, initialValue) {

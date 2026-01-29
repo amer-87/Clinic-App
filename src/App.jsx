@@ -13,15 +13,9 @@ import './style.css';
 import { ClinicProvider, ClinicContext } from "./context";
 
 // ——————————————
-// Protected Route Component
+// Protected Route Component (Disabled - No Login Required)
 // ——————————————
 function ProtectedRoute({ children }) {
-  const { user } = useContext(ClinicContext);
-  
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  
   return children;
 }
 
@@ -71,32 +65,18 @@ function Layout({ children }) {
 // App Content Component
 // ——————————————
 function AppContent() {
-  const { user } = useContext(ClinicContext);
-
   return (
     <Routes>
-      <Route path="/login" element={
-        user ? <Navigate to="/owner" replace /> : <LoginPage />
-      } />
-      <Route path="/register" element={
-        <ProtectedRoute>
-          <RegistrationPage />
-        </ProtectedRoute>
-      } />
       <Route path="/" element={<Navigate to="/owner" replace />} />
       <Route path="/doctor" element={
-        <ProtectedRoute>
-          <Layout>
-            <DoctorPage />
-          </Layout>
-        </ProtectedRoute>
+        <Layout>
+          <DoctorPage />
+        </Layout>
       } />
       <Route path="/owner" element={
-        <ProtectedRoute>
-          <Layout>
-            <OwnerPage />
-          </Layout>
-        </ProtectedRoute>
+        <Layout>
+          <OwnerPage />
+        </Layout>
       } />
       <Route path="*" element={<Navigate to="/owner" replace />} />
     </Routes>

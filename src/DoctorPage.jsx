@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef, useEffect } from "react";
+import React, { useState, useContext, useRef, useEffect, useMemo } from "react";
 import { useClinic } from "./hooks";
 import { ClinicContext } from "./context";
 import PatientTable from "./PatientTable";
@@ -12,7 +12,7 @@ export default function DoctorPage() {
   const [prescription, setPrescription] = useState("");
 
   // Default doctor settings from user context
-  const doctorSettings = {
+  const doctorSettings = useMemo(() => ({
     name: user?.name || "",
     specialization: user?.specialization || "",
     title: user?.title || "",
@@ -33,7 +33,7 @@ export default function DoctorPage() {
     doctorInfoBackgroundImage: user?.doctorInfoBackgroundImage || "",
     textareaBackgroundImage: user?.textareaBackgroundImage || "",
     detailsBackgroundImage: user?.detailsBackgroundImage || ""
-  };
+  }), [user]);
 
   const [showDoctorForm, setShowDoctorForm] = useState(false);
   const [doctorForm, setDoctorForm] = useState(doctorSettings);
@@ -49,7 +49,7 @@ export default function DoctorPage() {
       setPreviewSettings(doctorSettings);
       setOriginalSettings(doctorSettings);
     }
-  }, [showDoctorForm]);
+  }, [showDoctorForm, doctorSettings]);
 
   const [showForm, setShowForm] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -534,6 +534,7 @@ export default function DoctorPage() {
   function handleDoctorSubmit(e) {
     e.preventDefault();
     console.log("Doctor form submitted:", doctorForm);
+    updateUser(doctorForm);
     alert("تم حفظ الإعدادات بنجاح!");
     setShowDoctorForm(false);
     setPreviewSettings(null);
@@ -1278,7 +1279,7 @@ export default function DoctorPage() {
           )}
         </div>
 
-        {user && (
+        {selectedPatient && (
           <>
             <div style={{flexBasis: '100%', marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px'}}>
               <button type="button" className="btn-outline" onClick={handlePrintPrescription}>طباعة الوصفة</button>
